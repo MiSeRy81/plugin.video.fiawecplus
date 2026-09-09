@@ -1,109 +1,115 @@
-# FIA WEC+ Kodi Add-on
+# 🏁 FIAWEC+ Kodi Add-on
 
-An unofficial Kodi add-on for accessing FIA WEC+, European Le Mans Series (ELMS) and Michelin Le Mans Cup (MLMC) content.
+An unofficial Kodi add-on for FIA WEC+, European Le Mans Series (ELMS) and Michelin Le Mans Cup (MLMC).
 
-> **Current version:** 1.6.0
+> **Latest release: v1.6.6**  
+> New in v1.6.6: **Bruce's Dream** added to WEC → Originals.
 
-## 🏁 Supported Series
+## 🏎️ Supported Series
 
 - FIA World Endurance Championship (WEC)
 - European Le Mans Series (ELMS)
 - Michelin Le Mans Cup (MLMC)
 
-The add-on provides access to available live streams, replays and archive content.
+The add-on provides access to available live streams, replays, race weekends and archive content through a Kodi-friendly interface.
+
+## 🎬 WEC Content
+
+Available WEC content includes:
+
+- Races
+- Qualifying sessions
+- Practice sessions
+- Replays
+- Upcoming livestreams
+- Onboard replays
+- Hypercar and LMGT3 onboard sections
+- WEC Full Access
+- WEC Insider
+- WEC Icons
+- Originals
+
+### WEC Originals
+
+Currently supported FIAWEC+ Originals include:
+
+- **Project Genesis**
+- **Ford Mission Hypercar**
+- **Bruce's Dream**
+
+Originals are loaded directly from the available FIAWEC+/Staylive playlists.
 
 ## 🔓 Free & Subscription Content
 
 | Series | Access |
-|--------|--------|
-| FIA WEC | WEC+ subscription required for premium content |
+|---|---|
+| FIA WEC | Free content + subscription content |
 | ELMS | Free |
 | MLMC | Free |
 
-ELMS and MLMC content can be watched without a paid WEC+ subscription.
+Some FIA WEC content requires an active FIAWEC+ subscription.
 
-Some FIA WEC content requires an active WEC+ subscription.
+The add-on does **not** provide or bypass subscriptions. Protected content requires your own valid FIAWEC+ account and the appropriate subscription.
 
-## 🔐 Login / Authentication
+## 🔐 Account & Authentication
 
-Email and password login is not implemented yet.
+The add-on supports:
 
-Authentication currently works using exported browser cookies.
+- FIAWEC+ account status
+- Cookie-based authentication
+- Shared cookie files via NAS for multiple Kodi devices
+- OAuth access-token handling
+- Automatic refresh-token handling
+- Token verification
+- FREE / subscription status detection
 
-### How to create the cookie file
+Direct email/password login is currently not implemented.
 
-1. Open FIA WEC+ in your browser:
-   `https://plus.fiawec.com/en`
+## ⚡ Performance
 
-2. Log in to your FIA WEC+ account.
+The add-on uses internal caching to improve navigation performance and reduce unnecessary FIAWEC+/Staylive API requests.
 
-3. Use the **ExportCookies** browser extension to export your cookies.
+Playback-critical requests are kept separate from menu caching.
 
-4. When exporting the cookies, make sure that:
+## 📺 Supported Platforms
 
-   **All Domains**
+The add-on is designed for Kodi and can be used on platforms including:
 
-   is selected.
-
-5. Import/select the exported cookie file in the Kodi add-on.
-
-### Multiple Kodi Devices
-
-At the moment, an exported cookie should only be used on one device.
-
-If you use the add-on on multiple Kodi devices, export a separate cookie for each device.
+- Android TV
+- Windows
+- Other Kodi-compatible systems
 
 ## 📦 Installation
 
-1. Download the latest release from the **Releases** section of this repository.
+1. Download the latest ZIP from the **Releases** section.
+2. Open Kodi.
+3. Go to **Add-ons → Install from zip file**.
+4. Select `plugin.video.fiawecplus-x.x.x.zip`.
+5. Open **FIAWEC+** from Video Add-ons.
 
-2. Download:
+## 🆕 Latest Release
 
-   `plugin.video.fiawecplus-1.6.0.zip`
+### v1.6.6
 
-3. Open Kodi.
+- Added **Bruce's Dream** to WEC → Originals
+- Added direct FIAWEC+/Staylive playlist support for Bruce's Dream
+- Based on the stable v1.6.5 release
+- Existing playback and authentication functionality remains unchanged
 
-4. Go to:
+See the **Releases** section for the complete changelog and downloads.
 
-   **Add-ons → Install from ZIP file**
+## 🤖 Development
 
-5. Select the downloaded ZIP file.
+FIAWEC+ for Kodi is a hobby/community project developed with extensive AI assistance.
 
-6. After installation, open:
+Feedback, testing, bug reports and suggestions are welcome.
 
-   **Add-ons → Video add-ons → FIA WEC+**
+## ⚠️ Disclaimer
 
-## ⚠️ Current Limitations
+FIAWEC+ for Kodi is an **unofficial community add-on**.
 
-I currently don't have an active WEC+ paid subscription.
+It is not affiliated with, authorized by, sponsored by or endorsed by FIA, ACO, FIA WEC, European Le Mans Series, Michelin Le Mans Cup or Staylive.
 
-Because of this, I cannot fully test subscription-only FIA WEC streams.
+All trademarks, service names and content belong to their respective owners.
 
-ELMS and MLMC content has been tested and is working.
-
-Feedback from users with an active WEC+ subscription is therefore very welcome.
-
-## 🛠 Development
-
-The add-on is still under active development.
-
-Planned improvements include:
-
-- Email/password authentication
-- Improved account handling
-- Further improvements to live streams and archive content
-- Bug fixes and general optimizations
-
-Bug reports, feedback and suggestions are welcome.
-
-## 🤖 Development Note
-
-This add-on was created with the assistance of AI.
-
-## ⚖️ Disclaimer
-
-This is an unofficial Kodi add-on and is not affiliated with, endorsed by, or associated with FIA, FIA WEC, ACO, ELMS or Michelin Le Mans Cup.
-
-All trademarks, logos and content belong to their respective owners.
-
-The add-on does not provide or host video content. It provides access to content made available through the respective services. Users are responsible for having the appropriate subscription or access rights where required.
+Users are responsible for having the required accounts and subscriptions for protected content.
