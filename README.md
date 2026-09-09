@@ -2,8 +2,8 @@
 
 An unofficial Kodi add-on for FIA WEC+, European Le Mans Series (ELMS) and Michelin Le Mans Cup (MLMC).
 
-> **Latest release: v1.6.6**  
-> New in v1.6.6: **Bruce's Dream** added to WEC → Originals.
+> **Latest release: v1.6.7**  
+> New in v1.6.7: Direct **email & password sign-in**, including Android TV support.
 
 ## 🏎️ Supported Series
 
@@ -55,15 +55,17 @@ The add-on does **not** provide or bypass subscriptions. Protected content requi
 
 The add-on supports:
 
-- FIAWEC+ account status
-- Cookie-based authentication
-- Shared cookie files via NAS for multiple Kodi devices
+- Direct **email & password sign-in**
+- Email/password sign-in on **Android TV**
+- Staylive CAPTCHA authentication directly inside Kodi
+- Cookie-based sign-in as an alternative
 - OAuth access-token handling
 - Automatic refresh-token handling
+- Automatic session renewal
 - Token verification
 - FREE / subscription status detection
 
-Direct email/password login is currently not implemented.
+After a successful email/password sign-in, the access and refresh tokens are stored automatically and the session can be renewed without signing in again.
 
 ## ⚡ Performance
 
@@ -89,12 +91,17 @@ The add-on is designed for Kodi and can be used on platforms including:
 
 ## 🆕 Latest Release
 
-### v1.6.6
+### v1.6.7
 
-- Added **Bruce's Dream** to WEC → Originals
-- Added direct FIAWEC+/Staylive playlist support for Bruce's Dream
-- Based on the stable v1.6.5 release
-- Existing playback and authentication functionality remains unchanged
+- Added direct **email & password sign-in**
+- Added email/password authentication support for **Android TV**
+- Added Staylive CAPTCHA handling directly inside Kodi
+- Optimized CAPTCHA display for TV screens
+- Added automatic access/refresh token handling
+- Added automatic session renewal
+- Simplified and cleaned up the Account menu
+- Cookie sign-in remains available as an alternative
+- Existing WEC, ELMS, MLMC and playback functionality remains unchanged
 
 See the **Releases** section for the complete changelog and downloads.
 
