@@ -23,47 +23,13 @@ def video_date_label(video):
     return ""
 
 
-def video_access_label(video):
-    if not isinstance(video, dict):
-        return ""
-    for key in ("is_free", "isFree", "free", "free_to_watch", "freeToWatch"):
-        if key in video and isinstance(video.get(key), bool):
-            return "FREE" if video.get(key) else "PAY"
-    for key in ("is_paid", "isPaid", "paid", "payment_required", "paymentRequired",
-                "requires_subscription", "requiresSubscription",
-                "requires_purchase", "requiresPurchase"):
-        if video.get(key) is True:
-            return "PAY"
-    for key in ("access_type", "accessType", "payment_type", "paymentType",
-                "access", "availability", "entitlement_type", "entitlementType"):
-        value = video.get(key)
-        if isinstance(value, str):
-            norm = value.strip().lower().replace("-", "_").replace(" ", "_")
-            if norm in ("free", "public", "open", "free_to_watch", "no_auth"):
-                return "FREE"
-            if norm in ("paid", "pay", "premium", "subscription", "subscriber",
-                        "purchase", "ppv", "pay_per_view", "entitled"):
-                return "PAY"
-    price = video.get("price")
-    if isinstance(price, (int, float)):
-        return "FREE" if price == 0 else "PAY"
-    for parent in ("access_control", "accessControl", "entitlement", "permissions"):
-        nested = video.get(parent)
-        if isinstance(nested, dict):
-            nested_label = video_access_label(nested)
-            if nested_label:
-                return nested_label
-    return ""
-
-
 def video_display_title(video, title, include_date=False, forced_access=""):
-    access = forced_access or video_access_label(video)
-    prefix = "[{}] ".format(access) if access else ""
+    """Build a video title without FREE/PAY access prefixes."""
     if include_date:
         date_label = video_date_label(video)
         if date_label:
-            return "{}{} – {}".format(prefix, date_label, title)
-    return "{}{}".format(prefix, title)
+            return "{} – {}".format(date_label, title)
+    return title
 
 
 def short_video_title(name):

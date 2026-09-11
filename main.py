@@ -936,10 +936,6 @@ def _video_date_label(video):
     return _video_menu.video_date_label(video)
 
 
-def _video_access_label(video):
-    return _video_menu.video_access_label(video)
-
-
 def _video_display_title(video, title, include_date=False, forced_access=""):
     return _video_menu.video_display_title(video, title, include_date, forced_access)
 

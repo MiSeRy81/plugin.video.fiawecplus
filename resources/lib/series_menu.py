@@ -175,10 +175,18 @@ def render_series(slug, ctx):
 
     except Exception as exc:
         ctx["log"]("Series failed: {}".format(exc), xbmc.LOGERROR)
-        xbmcgui.Dialog().ok(
-            "FIAWEC+",
-            ctx["L"]("Serien-Liste fehlgeschlagen:\n\n{}", "Series list failed:\n\n{}").format(exc)
-        )
+        error_text = str(exc)
+        if "Not signed in" in error_text or "sign in" in error_text.lower():
+            message = ctx["L"](
+                "Anmeldung erforderlich\n\nBitte melde dich über das FIAWEC+ Add-on an, um auf diese Inhalte zuzugreifen.",
+                "Sign-in required\n\nPlease sign in through the FIAWEC+ add-on to access this content."
+            )
+        else:
+            message = ctx["L"](
+                "Serien-Liste fehlgeschlagen:\n\n{}",
+                "Series list failed:\n\n{}"
+            ).format(exc)
+        xbmcgui.Dialog().ok("FIAWEC+", message)
         xbmcplugin.endOfDirectory(ctx["handle"], succeeded=False)
 
 

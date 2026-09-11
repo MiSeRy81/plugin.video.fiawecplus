@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.fiawecplus"
        name="FIAWEC+"
-       version="1.6.10"
+       version="1.6.11"
        provider-name="MiSeRy">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
@@ -18,6 +18,13 @@
         <license>MIT</license>
 	<source>https://github.com/MiSeRy81/plugin.video.fiawecplus</source>
         <news lang="de_DE">
+[1.6.11]
+- CAPTCHA-Anzeige im Login optimiert und weiter nach links ausgerichtet
+- Verbesserter Hinweis, wenn der Nutzer nicht eingeloggt ist
+- Verständlichere Meldung, wenn für ein Video ein kostenpflichtiges FIAWEC+ Abonnement erforderlich ist
+- FREE-/PAY-Kennzeichnungen vor Videotiteln entfernt
+- Login- und Zugriffsanzeigen bereinigt
+
 [1.6.10]
 - GitHub-Quellcode direkt in den Add-on-Metadaten verlinkt
 - Quellcode für Reviews und Pull Requests vollständig im Repository verfügbar

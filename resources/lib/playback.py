@@ -74,11 +74,39 @@ def play_video(slug, *, handle, get_video, log, translate):
         video = get_video(slug)
         playback_url = _find_playback_url(video)
         if not playback_url:
-            keys = ", ".join(sorted(str(k) for k in video.keys()))
-            raise RuntimeError(
-                "Video object does not contain a playback_url. "
-                "Vorhandene Felder: {}".format(keys[:700])
+            subscriber_only = video.get("subscribers_only", video.get("subscribersOnly"))
+            is_paid = False
+            if isinstance(subscriber_only, bool):
+                is_paid = subscriber_only
+            elif isinstance(subscriber_only, (int, float)):
+                is_paid = subscriber_only != 0
+            elif isinstance(subscriber_only, str):
+                is_paid = subscriber_only.strip().lower() in ("1", "true", "yes", "pay", "paid")
+
+            if is_paid:
+                _fail(
+                    handle,
+                    "FIAWEC+",
+                    translate(
+                        "Kostenpflichtiges Abonnement erforderlich\n\nDieses Video erfordert ein kostenpflichtiges FIAWEC+ Abonnement.",
+                        "Paid subscription required\n\nThis video requires a paid FIAWEC+ subscription.",
+                    ),
+                    log,
+                    "Paid subscription required",
+                )
+                return
+
+            _fail(
+                handle,
+                "FIAWEC+",
+                translate(
+                    "Dieses Video ist derzeit nicht zur Wiedergabe verfügbar.",
+                    "This video is currently unavailable for playback.",
+                ),
+                log,
+                "Playback URL unavailable",
             )
+            return
 
         title = video.get("name") or slug
         item = xbmcgui.ListItem(label=title, path=playback_url)

@@ -1480,18 +1480,18 @@ class _CaptchaDialog(xbmcgui.WindowDialog):
         self.ext = os.path.splitext(self.image_path)[1].lower() or 'unknown'
 
         self.title = xbmcgui.ControlLabel(
-            260, 90, 1400, 70,
+            140, 90, 1400, 70,
             'Staylive CAPTCHA — memorize the code  [{}]'.format(self.ext),
             font='font30', textColor='0xFFFFFFFF', alignment=0x00000002
         )
         # Deliberately smaller than before: centered and roughly half the previous
         # size so the challenge remains readable without overwhelming the TV UI.
         self.image = xbmcgui.ControlImage(
-            635, 220, 650, 300, self.image_path,
+            515, 220, 650, 300, self.image_path,
             aspectRatio=2
         )
         self.button = xbmcgui.ControlButton(
-            660, 590, 600, 80,
+            540, 590, 600, 80,
             'I have memorized the code'
         )
         self.addControl(self.title)
