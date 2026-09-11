@@ -1,53 +1,102 @@
-# Changelog – FIAWEC+
+\# Changelog – FIAWEC+
 
-## 1.6.9
 
-**Source code / repository**
-- The previously very large `main.py` was split into focused modules for API access, authentication, caching, routing, WEC event logic, ELMS/MLMC menus, onboard handling, playback and shared Kodi UI helpers.
-- The refactor is intended to improve readability, reviewability and pull-request workflows without changing the visible add-on behavior.
-- The complete source is now suitable for keeping directly in the GitHub repository, while the installable Kodi ZIP can remain a separate Release asset.
 
-**ELMS / Michelin Le Mans Cup – kommende Livestreams**
-- Unter ELMS → 2026 und MLMC → 2026 gibt es jetzt jeweils **„Nächste Livestreams“**.
-- Kommende und aktuell laufende Sessions werden automatisch aus dem plattformweiten Staylive-Livestream-Katalog geladen.
-- Datum und Uhrzeit werden lokal angezeigt; bereits laufende Sessions erhalten einen roten **LIVE**-Hinweis.
-- Die Erkennung ist serienbasiert und benötigt keine fest hinterlegten Silverstone-URLs. Dadurch können auch spätere Events automatisch erscheinen, sobald Staylive sie veröffentlicht.
+\## 1.6.10
 
----
 
-## 1.6.8
 
-**Performance – WEC-Onboard-Replays laden schneller**
-- Der Ladepfad für "Replay - Onboards Hypercar/LMGT3" nutzt jetzt primär die
-  eigenen `VIDEO_CHANNEL_TAGS`-Feeds der jeweiligen Rennseite (channel-gebunden,
-  wie bei den normalen Replays). Die teure, plattformweite Suche über die
-  komplette Saison läuft nur noch als Fallback, wenn die Rennseite selbst
-  keinen passenden Onboard-Feed liefert.
-- Mehrseitige Onboard-/Tag-Abfragen holen alle Seiten nach der ersten jetzt
-  **parallel** ab (kleiner Thread-Pool) statt strikt nacheinander. Das
-  verkürzt vor allem das erste (kalte) Öffnen eines Onboard-Ordners deutlich.
+\### Repository / source code
 
-**Bugfix – falsche Fahrzeuge in WEC-Onboard-Ordnern**
-- ELMS- und Michelin-Le-Mans-Cup-Fahrzeuge tauchten in WEC-Onboard-Ordnern auf,
-  wenn beide Serien am selben Wochenende/Ort fahren (z. B. WEC "6 Hours of
-  Imola" vs. ELMS "4 Hours of Imola"). Videos werden jetzt anhand ihres
-  eigenen Slugs/Titels/Channel-Namens als andere Serie erkannt und
-  ausgeschlossen, unabhängig vom Streckennamen.
-- "Lone Star Le Mans" (Circuit of the Americas) zeigte fälschlich Onboards der
-  echten "24 Hours of Le Mans", weil beide Rennnamen die Wörter "Le"/"Mans"
-  teilen und die Namens-Filterung nur eines der Wörter verlangte (ODER statt
-  UND). Der Abgleich verlangt jetzt alle unterscheidenden Wörter gemeinsam.
-- Als Folge dieser Verschärfung waren Hypercar/LMGT3 bei Lone Star Le Mans
-  zwischenzeitlich komplett leer, weil der Namens-Check unnötig auch auf den
-  bereits korrekt eingegrenzten (channel-gebundenen) Pfad angewendet wurde.
-  Der Check läuft jetzt nur noch dort, wo er wirklich nötig ist – im
-  plattformweiten Fallback.
 
-**Sonstiges**
-- Paketgröße reduziert (u. a. `__pycache__` entfernt, ca. 852 KB → 728 KB).
 
----
+\- Added the GitHub source URL to the add-on metadata.
 
-## 1.6.7 und früher
+\- Full source code is now directly available in the repository for reviews and pull requests.
 
-Keine Änderungshistorie vorhanden – dies ist der Startpunkt der Aufzeichnung.
+
+
+\---
+
+
+
+\## 1.6.9
+
+
+
+\### Source code refactor
+
+
+
+\- Split the previously large `main.py` into focused modules for API access, authentication, caching, routing, event logic, menus, onboard handling, playback and shared Kodi UI helpers.
+
+\- Improved readability, reviewability and pull-request workflows without intended user-facing changes.
+
+\- Full source code is now maintained directly in the GitHub repository, while the installable Kodi ZIP remains available as a separate Release asset.
+
+
+
+\### ELMS / MLMC upcoming livestreams
+
+
+
+\- Added "Next livestreams" sections for ELMS 2026 and MLMC 2026.
+
+\- Upcoming and currently running sessions are detected automatically from the Staylive livestream catalogue.
+
+\- Local date/time display and LIVE indicators for active sessions.
+
+\- No hardcoded event URLs required, allowing future events to appear automatically when published.
+
+
+
+\---
+
+
+
+\## 1.6.8
+
+
+
+\### WEC onboard improvements
+
+
+
+\- Faster onboard replay loading by prioritizing race-specific `VIDEO\_CHANNEL\_TAGS` feeds.
+
+\- Platform-wide season search is now used only as a fallback.
+
+\- Multi-page onboard queries are loaded in parallel for improved performance.
+
+
+
+\### Fixes
+
+
+
+\- Prevented ELMS and MLMC vehicles from appearing in WEC onboard folders.
+
+\- Improved race-name matching to correctly distinguish "Lone Star Le Mans" from "24 Hours of Le Mans".
+
+\- Fixed empty Hypercar/LMGT3 onboard folders caused by overly strict filtering.
+
+
+
+\### Miscellaneous
+
+
+
+\- Reduced package size by removing unnecessary cache files.
+
+
+
+\---
+
+
+
+\## 1.6.7 and earlier
+
+
+
+\- No detailed change history available.
+

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.fiawecplus"
        name="FIAWEC+"
-       version="1.6.9"
+       version="1.6.10"
        provider-name="MiSeRy">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
@@ -16,7 +16,12 @@
         <description lang="en_GB">Enjoy endurance racing with FIAWEC+. The add-on provides access to races, qualifying, practice sessions, replays and other available WEC, ELMS and MLMC content. Protected content requires a valid FIAWEC+ account and the appropriate subscription.</description>
         <platform>all</platform>
         <license>MIT</license>
+	<source>https://github.com/MiSeRy81/plugin.video.fiawecplus</source>
         <news lang="de_DE">
+[1.6.10]
+- GitHub-Quellcode direkt in den Add-on-Metadaten verlinkt
+- Quellcode für Reviews und Pull Requests vollständig im Repository verfügbar
+
 [1.6.9]
 - ELMS und Michelin Le Mans Cup: „Nächste Livestreams“ für die Saison 2026 ergänzt
 - Kommende und laufende Streams werden automatisch aus dem Staylive-Livestream-Katalog erkannt
