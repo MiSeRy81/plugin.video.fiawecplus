@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.12
+
+- ELMS and Michelin Le Mans Cup: Upcoming livestreams are now limited to Qualifying and Race, the sessions that provide live video.
+- Free Practice, Bronze Driver tests and other live-timing-only sessions are no longer listed as playable livestreams.
+- WEC livestream detection remains unchanged.
+
 ## 1.6.11
 
 - CAPTCHA display in the login dialog optimized and moved further to the left.

@@ -121,8 +121,25 @@ def series_livestream_match(item, series_key):
     return False
 
 
+def series_video_livestream_session_match(item):
+    """Return True for ELMS/MLMC sessions that have a real video livestream.
+
+    FIAWEC+/Staylive also exposes live-timing-only sessions through the
+    livestream catalogue. For ELMS and MLMC race weekends, only Qualifying
+    and Race are video sessions; practice/test sessions must not be shown as
+    playable livestreams.
+    """
+    slug = normalize_slug(item.get("seo_string") or item.get("slug") or "")
+    title = str(item.get("name") or item.get("title") or "")
+    haystack = "{} {}".format(slug, title).lower()
+    return bool(
+        re.search(r"(?:^|[-_ |])qualifying(?:$|[-_ |])", haystack)
+        or re.search(r"(?:^|[-_ |])race(?:$|[-_ |])", haystack)
+    )
+
+
 def future_series_livestreams(items, series_key, year="2026", now_utc=None):
-    """Filter already-loaded Staylive items to upcoming/current ELMS or MLMC."""
+    """Filter Staylive items to real upcoming/current ELMS or MLMC video streams."""
     wanted = str(year or "2026").strip()
     now_utc = now_utc or datetime.now(timezone.utc)
     result = []
@@ -130,6 +147,8 @@ def future_series_livestreams(items, series_key, year="2026", now_utc=None):
 
     for item in items:
         if not series_livestream_match(item, series_key):
+            continue
+        if not series_video_livestream_session_match(item):
             continue
 
         slug = normalize_slug(item.get("seo_string") or item.get("slug") or "")

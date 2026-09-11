@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.fiawecplus"
        name="FIAWEC+"
-       version="1.6.11"
+       version="1.6.12"
        provider-name="MiSeRy">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
@@ -18,6 +18,11 @@
         <license>MIT</license>
 	<source>https://github.com/MiSeRy81/plugin.video.fiawecplus</source>
         <news lang="de_DE">
+[1.6.12]
+- ELMS und Michelin Le Mans Cup: Unter „Nächste Livestreams“ werden nur noch Qualifying und Rennen als Video-Livestreams angezeigt
+- Free Practice, Bronze Driver Tests und andere reine Live-Timing-Sessions werden nicht mehr fälschlich als abspielbare Livestreams gelistet
+- WEC-Livestream-Erkennung bleibt unverändert
+
 [1.6.11]
 - CAPTCHA-Anzeige im Login optimiert und weiter nach links ausgerichtet
 - Verbesserter Hinweis, wenn der Nutzer nicht eingeloggt ist
