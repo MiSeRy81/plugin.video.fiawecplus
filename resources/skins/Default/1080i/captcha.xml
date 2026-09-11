@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+    <defaultcontrol always="true">200</defaultcontrol>
+    <coordinates>
+        <system>1</system>
+        <origin x="0" y="0" />
+    </coordinates>
+    <controls>
+        <control type="label" id="101">
+            <left>260</left>
+            <top>95</top>
+            <width>1400</width>
+            <height>70</height>
+            <font>font30</font>
+            <textcolor>FFFFFFFF</textcolor>
+            <align>center</align>
+            <label>Staylive CAPTCHA — memorize the code</label>
+        </control>
+        <control type="image" id="100">
+            <left>460</left>
+            <top>210</top>
+            <width>1000</width>
+            <height>500</height>
+            <aspectratio align="center" aligny="center">keep</aspectratio>
+            <texture></texture>
+        </control>
+        <control type="button" id="200">
+            <left>660</left>
+            <top>780</top>
+            <width>600</width>
+            <height>80</height>
+            <label>I have memorized the code</label>
+            <font>font20</font>
+            <align>center</align>
+        </control>
+    </controls>
+</window>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.fiawecplus"
+       name="FIAWEC+"
+       version="1.6.9"
+       provider-name="MiSeRy">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0"/>
+    </requires>
+
+    <extension point="xbmc.python.pluginsource" library="main.py">
+        <provides>video</provides>
+    </extension>
+
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en_GB">FIAWEC+ – WEC, ELMS and Michelin Le Mans Cup in Kodi</summary>
+        <description lang="en_GB">Enjoy endurance racing with FIAWEC+. The add-on provides access to races, qualifying, practice sessions, replays and other available WEC, ELMS and MLMC content. Protected content requires a valid FIAWEC+ account and the appropriate subscription.</description>
+        <platform>all</platform>
+        <license>MIT</license>
+        <news lang="de_DE">
+[1.6.9]
+- ELMS und Michelin Le Mans Cup: „Nächste Livestreams“ für die Saison 2026 ergänzt
+- Kommende und laufende Streams werden automatisch aus dem Staylive-Livestream-Katalog erkannt
+- Live-Sessions werden mit Datum/Uhrzeit und rotem LIVE-Hinweis angezeigt
+- Keine fest hinterlegten Event-URLs: neue Streams erscheinen automatisch, sobald Staylive sie veröffentlicht
+
+[1.6.8]
+- WEC-Onboard-Replays: schnellerer Ladepfad bevorzugt jetzt die eigenen Channel-Feeds des Rennens statt einer plattformweiten Saison-Suche (nur noch Fallback)
+- Fix: ELMS-/Michelin-Le-Mans-Cup-Fahrzeuge werden nicht mehr fälschlich in WEC-Onboard-Ordnern angezeigt (z. B. Imola: WEC 6h vs. ELMS 4h)
+- Fix: "Lone Star Le Mans" (COTA) zeigte fälschlich Onboards der echten 24 Hours of Le Mans
+- Fix: dadurch zwischenzeitlich leere Hypercar-/LMGT3-Onboard-Ordner bei Lone Star Le Mans behoben
+- Performance: mehrseitige Onboard-Abfragen laden Folgeseiten jetzt parallel statt nacheinander
+        </news>
+        <assets>
+            <icon>resources/icon.png</icon>
+            <fanart>resources/fanart.jpg</fanart>
+        </assets>
+    </extension>
+</addon>

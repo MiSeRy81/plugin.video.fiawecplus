@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<settings>
+    <category label="FIAWEC+">
+        <setting id="settings_info" type="lsep" label="Account and sign-in are managed directly in the add-on." />
+        <setting id="access_token" type="text" option="hidden" visible="false" label="Access token" default="" />
+        <setting id="refresh_token" type="text" option="hidden" visible="false" label="Refresh token" default="" />
+        <setting id="id_token" type="text" option="hidden" visible="false" label="ID token" default="" />
+        <setting id="expires_at" type="text" visible="false" label="Token expiry" default="0" />
+        <setting id="pkce_verifier" type="text" visible="false" label="PKCE verifier" default="" />
+        <setting id="oauth_state" type="text" visible="false" label="OAuth state" default="" />
+        <setting id="last_authorize_url" type="text" visible="false" label="Last sign-in URL" default="" />
+        <setting id="login_method" type="text" visible="false" label="Sign-in method" default="" />
+        <setting id="shared_cookie_path" type="text" visible="false" label="Shared cookie file" default="" />
+        <setting id="manual_access_token" type="text" option="hidden" visible="false" label="Legacy manual access token" default="" />
+        <setting id="access_token_expires" type="text" visible="false" label="Legacy expiry" default="0" />
+    </category>
+</settings>
