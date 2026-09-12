@@ -1,36 +1,148 @@
-# FIAWEC+ for Kodi
+# FIA WEC+ for Kodi
 
-Unofficial Kodi video add-on for **FIA World Endurance Championship (WEC)**, **European Le Mans Series (ELMS)** and **Michelin Le Mans Cup (MLMC)** content published through FIAWEC+/Staylive.
+Unofficial Kodi video add-on for **FIA World Endurance Championship (WEC)**, **European Le Mans Series (ELMS)** and **Michelin Le Mans Cup (MLMC)** content published through FIA WEC+ / Staylive.
+
+Developed and maintained by **MiSeRy**.
+
+[![Latest Release](https://img.shields.io/github/v/release/MiSeRy81/plugin.video.fiawecplus?style=flat-square)](https://github.com/MiSeRy81/plugin.video.fiawecplus/releases/latest)
+[![Kodi](https://img.shields.io/badge/Kodi-Video%20Add--on-blue?style=flat-square&logo=kodi)](https://kodi.tv/)
+[![GitHub](https://img.shields.io/badge/GitHub-MiSeRy81-black?style=flat-square&logo=github)](https://github.com/MiSeRy81)
+
+---
 
 ## Features
 
-- WEC, ELMS and MLMC navigation by season and event
+- FIA WEC, ELMS and Michelin Le Mans Cup
+- Navigation by season and event
 - Races, qualifying, practice sessions, highlights and replays where available
-- WEC onboard replays where provided by FIAWEC+/Staylive
-- Upcoming and live WEC, ELMS and MLMC sessions where available
-- Free and subscription-protected content handling
-- Cookie-based FIAWEC+/Staylive authentication
-- Cookie-file sign-in support, including shared cookie files
-- OAuth access/refresh-token handling with automatic token renewal
+- WEC and ELMS onboard replays
+- Upcoming and live WEC, ELMS and MLMC sessions
+- `LIVE`, `TODAY` and `TOMORROW` indicators for upcoming streams
+- EN, FR and Raw Sound stream variants where available
+- Stream-specific artwork and event backgrounds
+- Official FIA WEC 2026 race artwork
+- WEC race Hero/Cover backgrounds where available
+- Chronological livestream sorting
+- Subscription-protected and free content handling
+- FIA WEC+ account authentication
+- Email/password sign-in
+- Cookie-based sign-in
+- Shared cookie-file support
+- Automatic access-token renewal
 - Internal caching for faster navigation
+
+---
+
+## Screenshots
+
+### Main Menu
+
+![FIA WEC+ Home](docs/screenshots/home.png)
+
+### FIA WEC Race
+
+![FIA WEC Race](docs/screenshots/wec-race.png)
+
+### European Le Mans Series
+
+![ELMS](docs/screenshots/elms.png)
+
+### Upcoming Livestreams
+
+![Upcoming Livestreams](docs/screenshots/upcoming-livestreams.png)
+
+### Hypercar Onboards
+
+![Hypercar Onboards](docs/screenshots/onboards-hypercar.png)
+
+---
 
 ## Installation
 
-1. Download the current `plugin.video.fiawecplus-<version>.zip` from the GitHub Releases page.
-2. In Kodi, open **Add-ons → Install from ZIP file**.
-3. Select the downloaded ZIP package.
-4. Open **Add-ons → Video add-ons → FIAWEC+**.
-5. Configure sign-in from the **Account** menu if required.
+1. Open the [FIA WEC+ Releases](https://github.com/MiSeRy81/plugin.video.fiawecplus/releases/latest) page.
+2. Download the latest:
+
+   `plugin.video.fiawecplus-<version>.zip`
+
+3. Open Kodi.
+4. Go to:
+
+   **Add-ons → Install from ZIP file**
+
+5. Select the downloaded ZIP package.
+6. Open:
+
+   **Add-ons → Video add-ons → FIA WEC+**
+
+7. Configure your FIA WEC+ account from the **Account** menu if required.
+
+---
 
 ## Authentication
 
-The add-on supports FIAWEC+/Staylive authentication for protected content. Cookie-based sign-in and cookie-file sign-in are available, and access tokens are renewed automatically when possible.
+The add-on supports FIA WEC+ / Staylive authentication for protected content.
 
-Some FIA WEC content requires an active WEC+ subscription. ELMS and Michelin Le Mans Cup content may be available free of charge depending on what the service publishes.
+Available login methods include:
 
-## Source layout
+- Email and password
+- Existing FIA WEC+ / Staylive session cookie
+- Cookie file
+- Shared cookie file for multiple Kodi devices
 
-The source is intentionally split into focused modules instead of keeping the complete add-on in one large Python file:
+Access and refresh tokens are handled automatically where possible.
+
+An FIA WEC+ account may also be required for content offered without a paid subscription.
+
+Some FIA WEC content requires an active paid FIA WEC+ subscription.
+
+ELMS and Michelin Le Mans Cup content may be available without an additional paid subscription depending on what FIA WEC+ / Staylive publishes.
+
+---
+
+## Livestreams
+
+Upcoming livestreams are automatically collected from FIA WEC+ / Staylive.
+
+The add-on can display:
+
+- `LIVE` for currently running sessions
+- `TODAY` for sessions taking place today
+- `TOMORROW` for sessions taking place tomorrow
+- Date and time for later sessions
+
+Where available, separate feeds are shown for:
+
+- English
+- French
+- Raw Sound
+- ELMS onboard cameras
+
+ELMS and Michelin Le Mans Cup livestream listings are filtered to actual playable video sessions such as **Qualifying** and **Race**.
+
+---
+
+## Onboards
+
+FIA WEC and ELMS onboard content is supported where provided by FIA WEC+ / Staylive.
+
+ELMS onboard entries include information such as:
+
+- Class
+- Car number
+- Team
+- Session
+
+Example:
+
+`LMP2 PRO/AM | #21 United Autosports | Race`
+
+MLMC onboard folders are currently not included.
+
+---
+
+## Source Layout
+
+The source code is split into focused modules instead of keeping the complete add-on in one large Python file.
 
 ```text
 main.py                         Kodi entry point / compatibility handlers
@@ -39,7 +151,7 @@ resources/lib/auth.py           Cookie, account and token handling
 resources/lib/cache.py          Internal response cache
 resources/lib/config.py         Shared configuration/constants
 resources/lib/diagnostics.py    Diagnostics helpers
-resources/lib/onboard.py        WEC onboard detection/filtering
+resources/lib/onboard.py        WEC/ELMS onboard detection and filtering
 resources/lib/playback.py       Kodi playback handling
 resources/lib/routes.py         Action routing
 resources/lib/series_data.py    Shared WEC/ELMS/MLMC event data logic
@@ -48,26 +160,3 @@ resources/lib/ui.py             Shared Kodi UI/list item helpers
 resources/lib/utils.py          General utility helpers
 resources/lib/video_menu.py     Video/feed/playlist presentation
 resources/lib/wec_events.py     WEC season, race and event logic
-```
-
-`main.py` remains the Kodi plug-in entry point, while API access, authentication, event matching, menus, playback and other responsibilities live in separate modules.
-
-## Development and pull requests
-
-The complete Python source is kept directly in the repository so changes can be reviewed without downloading and unpacking a release ZIP.
-
-For contributions:
-
-1. Fork the repository and create a branch for your change.
-2. Keep changes focused and avoid unrelated formatting rewrites.
-3. Test navigation and playback in Kodi before opening a pull request.
-4. For event-matching changes, check WEC, ELMS and MLMC and pay particular attention to similarly named events such as **24 Hours of Le Mans** and **Lone Star Le Mans**.
-5. Describe the behavior change and the Kodi version/platform used for testing in the pull request.
-
-## Releases
-
-The repository contains the readable source code. Installable Kodi packages are published separately as ZIP files under **GitHub Releases**.
-
-## Disclaimer
-
-This is an unofficial Kodi add-on and is not affiliated with, endorsed by, or associated with FIA, FIA WEC, ACO, ELMS, Michelin Le Mans Cup or Staylive. The add-on does not host video content. Users are responsible for having the appropriate access rights or subscription for protected content.
