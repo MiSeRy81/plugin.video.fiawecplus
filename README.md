@@ -160,3 +160,51 @@ resources/lib/ui.py             Shared Kodi UI/list item helpers
 resources/lib/utils.py          General utility helpers
 resources/lib/video_menu.py     Video/feed/playlist presentation
 resources/lib/wec_events.py     WEC season, race and event logic
+
+Development
+
+Contributions and improvements are welcome.
+
+When submitting changes:
+
+Fork the repository.
+Create a branch for your changes.
+Keep changes focused.
+Test navigation and playback in Kodi.
+Check WEC, ELMS and MLMC when modifying event matching.
+Pay particular attention to similarly named events such as:
+24 Hours of Le Mans
+Lone Star Le Mans
+Include the Kodi version and platform used for testing when opening a pull request.
+Support the Project
+
+FIA WEC+ for Kodi is developed and maintained in my free time.
+
+If you enjoy the add-on and would like to support its continued development:
+
+Thank you for supporting the project! ☕
+
+Releases
+
+The latest stable Kodi package can always be found here:
+
+Download the latest FIA WEC+ release
+
+Disclaimer
+
+This is an unofficial Kodi add-on.
+
+It is not affiliated with, endorsed by, sponsored by or associated with:
+
+FIA
+FIA World Endurance Championship
+Automobile Club de l'Ouest (ACO)
+European Le Mans Series
+Michelin Le Mans Cup
+Staylive
+
+The add-on does not host, redistribute or provide video content itself.
+
+All video content is requested from the official services and remains subject to their availability, access restrictions and subscription requirements.
+
+Users are responsible for having the appropriate FIA WEC+ account, access rights and subscription for protected content.
