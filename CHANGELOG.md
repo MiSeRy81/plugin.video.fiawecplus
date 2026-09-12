@@ -1,35 +1,38 @@
 # Changelog
 
-## 1.6.12
+## FIA WEC+ v1.7
 
-- ELMS and Michelin Le Mans Cup: Upcoming livestreams are now limited to Qualifying and Race, the sessions that provide live video.
-- Free Practice, Bronze Driver tests and other live-timing-only sessions are no longer listed as playable livestreams.
-- WEC livestream detection remains unchanged.
+### WEC
 
-## 1.6.11
+- Added official FIAWEC+ 2026 race posters.
+- Uses official WEC race-page Hero/Cover images as fanart backgrounds when available.
+- Keeps older WEC seasons on their existing local artwork.
+- Includes the corrected Spa-Francorchamps and São Paulo 2026 artwork mappings.
+- Keeps the cleaned WEC archive renderer and event information layout.
 
-- CAPTCHA display in the login dialog optimized and moved further to the left.
-- Improved message when the user is not signed in.
-- Clearer message when a video requires a paid FIAWEC+ subscription.
-- Removed the non-working FREE/PAY labels from video titles.
-- Cleaned up login and access-status displays.
+### ELMS / Michelin Le Mans Cup
 
-## 1.6.10
+- Improved Upcoming Livestreams with chronological sorting and stream-specific artwork.
+- Displays `LIVE` for currently running streams and compact date/time prefixes for upcoming sessions.
+- Supports `TODAY` / `TOMORROW` labels where the device date can be resolved reliably.
+- Keeps ELMS onboard livestreams and replays with compact class, car and session information.
+- Limits ELMS/MLMC upcoming video sessions to actual Qualifying and Race feeds.
+- Uses deterministic CET/CEST conversion for German local stream times with safe fallbacks.
+- Keeps corrected weekend dates and cleaned event information panels.
+- Removes the separate Round line from race information.
 
-- GitHub source code linked directly in the add-on metadata.
-- Full source structure prepared for repository reviews and pull requests.
+### General
 
-## 1.6.9
+- Provider name is now `MiSeRy`.
+- Visible add-on name remains `FIA WEC+`.
+- Keeps email/password and cookie-based sign-in methods.
+- Keeps subscription and sign-in checks for protected content.
+- Preserves EN, FR and Raw Sound stream variants.
+- Preserves WEC/ELMS onboard support and excludes MLMC onboard folders.
+- Cleaned release metadata and removed development/test remnants.
 
-- Added “Next livestreams” for ELMS and Michelin Le Mans Cup 2026.
-- Upcoming and live sessions are detected automatically from the Staylive livestream catalog.
-- Live sessions display date/time and a red LIVE indicator.
-- No hard-coded event URLs: newly published Staylive streams can appear automatically.
+## FIA WEC+ v1.6.14
 
-## 1.6.8
-
-- WEC onboard replays now prefer race-specific channel feeds for faster loading, with platform-wide season search only as a fallback.
-- Fixed ELMS/MLMC cars appearing incorrectly in WEC onboard folders.
-- Fixed Lone Star Le Mans showing onboard videos from the 24 Hours of Le Mans.
-- Fixed temporarily empty Hypercar/LMGT3 onboard folders for Lone Star Le Mans.
-- Multi-page onboard requests now fetch subsequent pages in parallel.
+- Added official 2026 WEC race artwork and improved race information panels.
+- Improved ELMS/MLMC livestream navigation, sorting, artwork and local time handling.
+- Cleaned internal release metadata and legacy rendering code.

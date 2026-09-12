@@ -17,7 +17,7 @@ from resources.lib.config import (
     TEST_SLUG, PLATFORM_UID, ELMS_SEASON_PAGES, MLMC_SEASON_PAGES,
 )
 from resources.lib.utils import (
-    _berlin_datetime_label, normalize_slug, _find_playback_url, _message,
+    _berlin_datetime, _berlin_datetime_label, normalize_slug, _find_playback_url, _message,
     _text_value, _channel_value, _clean_text, _duration_seconds,
     _looks_like_image_url,
 )
@@ -81,7 +81,7 @@ def cache_clear():
 
 
 def log(message, level=xbmc.LOGINFO):
-    xbmc.log("[FIAWEC+] {}".format(message), level)
+    xbmc.log("[FIA WEC+] {}".format(message), level)
 
 
 _cache.configure(ADDON, log)
@@ -534,7 +534,7 @@ def wec_onboard_replays(path, label="Replay - Onboards Hypercar", car_class="hyp
 
         if not videos:
             xbmcgui.Dialog().notification(
-                "FIAWEC+",
+                "FIA WEC+",
                 "No {} onboard replays found".format(
                     "LMGT3" if wanted_class == "lmgt3" else "Hypercar"
                 ),
@@ -615,7 +615,7 @@ def wec_onboard_replays(path, label="Replay - Onboards Hypercar", car_class="hyp
     except Exception as exc:
         log("WEC onboard replay failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             "Onboard replays could not be loaded:\n\n{}".format(str(exc)[:900]),
         )
         xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
@@ -633,7 +633,7 @@ def cache_clear_action():
     """Clear the local page/thumbnail cache (menu entry: 'Cache leeren')."""
     ok = cache_clear()
     xbmcgui.Dialog().notification(
-        "FIAWEC+",
+        "FIA WEC+",
         L("Cache geleert", "Cache cleared") if ok else L("Cache konnte nicht geleert werden", "Cache could not be cleared"),
         xbmcgui.NOTIFICATION_INFO if ok else xbmcgui.NOTIFICATION_WARNING,
         3000,
@@ -997,7 +997,7 @@ def series_next_livestreams(series_key, year="2026"):
     series_label = {
         "elms": "European Le Mans Series",
         "mlmc": "Michelin Le Mans Cup",
-    }.get(key, "FIAWEC+")
+    }.get(key, "FIA WEC+")
 
     if not streams:
         add_item(
@@ -1008,21 +1008,204 @@ def series_next_livestreams(series_key, year="2026"):
         )
     else:
         now_utc = datetime.now(timezone.utc)
-        for live in streams:
+
+        def _meta(live):
+            title = str(live.get("title") or live.get("slug") or "")
+            low = title.lower()
+
+            # Onboard detection
+            onboard = ("onboard" in low or "n°" in low or "nº" in low or " n " in low or "#" in title)
+
+            # Class priority
+            if "lmp2 pro/am" in low or "lmp2 pro-am" in low:
+                cls, cls_order = "LMP2 PRO/AM", 0
+            elif "lmp2" in low:
+                cls, cls_order = "LMP2", 0
+            elif "lmp3" in low:
+                cls, cls_order = "LMP3", 1
+            elif "lmgt3" in low:
+                cls, cls_order = "LMGT3", 2
+            else:
+                cls, cls_order = "", 9
+
+            # Car number without regex
+            number = 9999
+            tmp = title.replace("N°", "#").replace("Nº", "#").replace("n°", "#").replace("nº", "#")
+            pos = tmp.find("#")
+            if pos >= 0:
+                digits = ""
+                for ch in tmp[pos + 1:pos + 5]:
+                    if ch.isdigit():
+                        digits += ch
+                    elif digits:
+                        break
+                if digits:
+                    try:
+                        number = int(digits)
+                    except Exception:
+                        number = 9999
+
+            return onboard, cls, cls_order, number
+
+        def _sort_key(live):
+            start_dt = live.get("start_dt")
+            try:
+                stamp = start_dt.timestamp()
+            except Exception:
+                stamp = 0
+            onboard, _cls, cls_order, number = _meta(live)
+            return (stamp, 1 if onboard else 0, cls_order, number, str(live.get("title") or "").lower())
+
+        for live in sorted(streams, key=_sort_key):
             when = _berlin_datetime_label(live.get("start"))
-            title = live.get("title") or live.get("slug")
+            title = str(live.get("title") or live.get("slug") or "")
+            low = title.lower()
             start_dt = live.get("start_dt")
             end_dt = live.get("end_dt")
             is_live = bool(start_dt and start_dt <= now_utc and (not end_dt or end_dt > now_utc))
-            live_prefix = "[COLOR red]LIVE[/COLOR] " if is_live else ""
-            base_display = "{} – {}".format(when, title) if when else title
+
+            # Prefix: LIVE / TODAY / TOMORROW / date.
+            # Stream times use deterministic German CET/CEST conversion.
+            try:
+                start_local = _berlin_datetime(live.get("start"))
+                local_today = datetime.now().date()
+
+                if start_local:
+                    day_delta = (start_local.date() - local_today).days
+                    if is_live:
+                        prefix = "[COLOR red]LIVE[/COLOR]"
+                    elif day_delta == 0:
+                        prefix = "TODAY {}".format(start_local.strftime("%H:%M"))
+                    elif day_delta == 1:
+                        prefix = "TOMORROW {}".format(start_local.strftime("%H:%M"))
+                    else:
+                        prefix = start_local.strftime("%d.%m. %H:%M")
+                    full_when = start_local.strftime("%d.%m.%Y • %H:%M")
+                else:
+                    prefix = "[COLOR red]LIVE[/COLOR]" if is_live else when
+                    full_when = when
+            except Exception:
+                # Time-label problems must never prevent the folder from opening.
+                prefix = "[COLOR red]LIVE[/COLOR]" if is_live else when
+                full_when = when
+
+            # Session
+            session = ""
+            if "qualifying" in low:
+                session = "Qualifying"
+            elif "race" in low:
+                session = "Race"
+
+            onboard, cls, _cls_order, number = _meta(live)
+
+            if onboard:
+                # First segment usually: "N°23 United Autosports - LMGT3"
+                first = title.split("|", 1)[0].strip()
+                first = first.replace("N°", "#").replace("Nº", "#").replace("n°", "#").replace("nº", "#")
+
+                # Remove trailing class from first segment
+                for marker in (" - LMP2 PRO/AM", " - LMP2 PRO-AM", " - LMP2", " - LMP3", " - LMGT3",
+                               " – LMP2 PRO/AM", " – LMP2 PRO-AM", " – LMP2", " – LMP3", " – LMGT3"):
+                    if first.upper().endswith(marker.upper()):
+                        first = first[:-len(marker)].strip()
+                        break
+
+                display = " | ".join([x for x in (prefix, cls, first, session) if x])
+            else:
+                # Main feed
+                series_short = "ELMS" if key == "elms" else "MLMC"
+
+                lang = ""
+                for tag in ("[EN]", "[FR]", "[Raw Sound]", "[RAW SOUND]"):
+                    if tag.lower() in low:
+                        lang = "[Raw Sound]" if "raw" in tag.lower() else tag.upper()
+                        break
+
+                event = title.split("|", 1)[0].strip()
+
+                # Compact known event names without regex
+                known_places = (
+                    "Silverstone", "Barcelona", "Le Castellet", "Imola",
+                    "Spa-Francorchamps", "Spa", "Mugello", "Portimao", "Portimão"
+                )
+                for place in known_places:
+                    if place.lower() in event.lower():
+                        event = place
+                        break
+
+                display = " | ".join([x for x in (prefix, series_short, session, event, lang) if x])
+
+            # Prefer the artwork supplied for the individual Staylive stream.
+            # This gives onboard entries their actual car thumbnails instead of
+            # the generic ELMS/MLMC series image. Fall back to series artwork
+            # when Staylive does not provide a usable image.
+            stream_art_url = _ui.extract_art_url(live.get("source"), live)
+            if stream_art_url:
+                stream_art = {
+                    "thumb": stream_art_url,
+                    "icon": stream_art_url,
+                    "poster": stream_art_url,
+                    "fanart": stream_art_url,
+                }
+            else:
+                stream_art = _official_series_art(key)
+
+            # Keep the full date/time in Kodi's info panel, but use the same
+            # compact wording as the list for onboard streams.
+            if onboard:
+                series_short = "ELMS" if key == "elms" else "MLMC"
+                compact_info = " | ".join([x for x in (series_short, session, cls) if x])
+                car_info = first
+
+                event_info = ""
+                for part in [x.strip() for x in title.split("|") if x.strip()]:
+                    part_low = part.lower()
+                    if any(place.lower() in part_low for place in (
+                        "Silverstone", "Barcelona", "Le Castellet", "Imola",
+                        "Spa-Francorchamps", "Spa", "Mugello", "Portimao", "Portimão"
+                    )):
+                        event_info = part
+                        break
+                info_lines = [full_when or when, compact_info, car_info, event_info]
+                info_plot = "\n".join(x for x in info_lines if x).strip()
+            else:
+                # Compact info panel for normal ELMS/MLMC main feeds.
+                # Keep full date/time and show session/language separately
+                # from the event name, matching the onboard presentation.
+                series_short = "ELMS" if key == "elms" else "MLMC"
+
+                lang = ""
+                for tag in ("[EN]", "[FR]", "[Raw Sound]", "[RAW SOUND]"):
+                    if tag.lower() in low:
+                        lang = "[Raw Sound]" if "raw" in tag.lower() else tag.upper()
+                        break
+
+                compact_info = " | ".join([x for x in (series_short, session, lang) if x])
+
+                event_info = title.split("|", 1)[0].strip()
+                # Remove the series prefix used by Staylive while preserving
+                # the complete event name, e.g. Goodyear 4 Hours of Silverstone 2026.
+                for prefix_text in (
+                    "European Le Mans Series - ",
+                    "European Le Mans Series – ",
+                    "Michelin Le Mans Cup - ",
+                    "Michelin Le Mans Cup – ",
+                ):
+                    if event_info.lower().startswith(prefix_text.lower()):
+                        event_info = event_info[len(prefix_text):].strip()
+                        break
+
+                info_lines = [full_when or when, compact_info, event_info]
+                info_plot = "\n".join(x for x in info_lines if x).strip()
+
             add_item(
-                live_prefix + base_display,
+                display,
                 "play_livestream",
                 playable=True,
                 slug=live.get("slug"),
-                art=_official_series_art(key),
-                plot="{} – {}".format(series_label, title),
+                art=stream_art,
+                plot=info_plot,
+                label2="",
             )
 
     xbmcplugin.addSortMethod(HANDLE, xbmcplugin.SORT_METHOD_NONE)
@@ -1112,7 +1295,7 @@ def get_access_token(force=False):
             raise RuntimeError("Token refresh failed. Please sign in again.")
     token = _ensure_access_token()
     if not token:
-        raise RuntimeError("Not signed in. Please sign in through the FIAWEC+ add-on.")
+        raise RuntimeError("Not signed in. Please sign in through the FIA WEC+ add-on.")
     return token
 
 
@@ -1293,14 +1476,14 @@ def test_barcelona_feed_action():
         videos = _message(response)
         count = len(videos) if isinstance(videos, list) else -1
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Diagnostics",
+            "FIA WEC+ Diagnostics",
             "Barcelona-Feed erfolgreich mit X-STAYLIVE-CHANNELS: 6999.\\n\\n"
             "Videos: {}\\n\\n"
             "URL:\\n{}".format(count, url)
         )
     except Exception as exc:
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Diagnostics",
+            "FIA WEC+ Diagnostics",
             "Barcelona feed failed.\\n\\n"
             "{}\\n\\nURL:\\n{}".format(exc, url)
         )
@@ -1308,7 +1491,7 @@ def test_barcelona_feed_action():
 
 def input_slug():
     value = xbmcgui.Dialog().input(
-        "FIAWEC+ URL or video slug",
+        "FIA WEC+ URL or video slug",
         type=xbmcgui.INPUT_ALPHANUM,
     )
     slug = normalize_slug(value)
@@ -1320,21 +1503,21 @@ def refresh_token_action():
     try:
         get_access_token(force=True)
         xbmcgui.Dialog().notification(
-            "FIAWEC+",
+            "FIA WEC+",
             "Access token refreshed successfully",
             xbmcgui.NOTIFICATION_INFO,
             4000,
         )
     except Exception as exc:
         log("Token refresh failed: {}".format(exc), xbmc.LOGERROR)
-        xbmcgui.Dialog().ok("FIAWEC+", "Token refresh failed:\n\n{}".format(exc))
+        xbmcgui.Dialog().ok("FIA WEC+", "Token refresh failed:\n\n{}".format(exc))
 
 
 def test_manual_token_action():
     token = setting("manual_access_token").strip()
     if not token:
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             "Kein Browser-Access-Token eingetragen.\\n\\n"
             "Open Settings and enter the current access_token from "
             "the successful /oauth/token response."
@@ -1348,21 +1531,21 @@ def test_manual_token_action():
         if playback_url:
             host = urllib.parse.urlparse(playback_url).netloc
             xbmcgui.Dialog().ok(
-                "FIAWEC+",
+                "FIA WEC+",
                 "Access-Token akzeptiert.\\n\\n"
                 "Video: {}\\nPlayback-URL: Ja\\nHost: {}".format(title, host)
             )
         else:
             keys = ", ".join(sorted(str(k) for k in video.keys()))
             xbmcgui.Dialog().ok(
-                "FIAWEC+",
+                "FIA WEC+",
                 "Access-Token akzeptiert, aber keine Playback-URL received.\\n\\n"
                 "Video: {}\\nFelder: {}".format(title, keys[:900])
             )
     except Exception as exc:
         log("Manual access-token test failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             "Access token test failed:\\n\\n{}".format(exc)
         )
 
@@ -1405,6 +1588,7 @@ _wec_events.configure(
     ADDON=ADDON, HANDLE=HANDLE, L=L, request_json=request_json,
     _api_headers=_api_headers, add_item=add_item, make_url=make_url, log=log,
     _folder_art=_folder_art, _menu_art=_menu_art, _wec_local_art=_wec_local_art,
+    _extract_art_url=_extract_art_url,
     _feed_preview_art=_feed_preview_art, _pretty_event_name=_pretty_event_name,
     _collect_video_channel_feeds=_collect_video_channel_feeds,
     _collect_video_tag_feeds=_collect_video_tag_feeds,

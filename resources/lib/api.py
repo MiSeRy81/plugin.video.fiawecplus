@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Low-level Staylive/FIAWEC+ API helpers.
+"""Low-level Staylive/FIA WEC+ API helpers.
 
 Internal refactor module.  This module deliberately has no Kodi dependency;
 main.py remains responsible for authentication state, cache storage and UI.

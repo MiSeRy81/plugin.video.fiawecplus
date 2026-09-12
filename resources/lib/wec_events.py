@@ -17,7 +17,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
-from resources.lib.config import PLATFORM_UID
+from resources.lib.config import PLATFORM_UID, WEC_SEASON_SCHEDULES
 from resources.lib.cache import CACHE_TTL_PAGE, CACHE_TTL_TAG_FEED
 from resources.lib.utils import (
     _message, _parse_staylive_datetime, _berlin_datetime_label, normalize_slug,
@@ -40,6 +40,7 @@ log = None
 _folder_art = None
 _menu_art = None
 _wec_local_art = None
+_extract_art_url = None
 _feed_preview_art = None
 _pretty_event_name = None
 _collect_video_channel_feeds = None
@@ -49,6 +50,103 @@ _feed_title_year = None
 feed = None
 _wec_has_onboard_replays = None
 _wec_onboard_replay_feeds = None
+
+
+def _find_wec_background_hero_image(value):
+    """Return the exact FIAWEC+ race-page Background Hero imageURL."""
+    if isinstance(value, dict):
+        name = str(value.get("name") or "").strip()
+        display_name = str(value.get("displayName") or "").strip()
+        props = value.get("props")
+        if (
+            name == "Background Hero"
+            and display_name == "Hero/Cover Image"
+            and isinstance(props, dict)
+        ):
+            image_url = str(props.get("imageURL") or "").strip()
+            if image_url:
+                return image_url
+
+        for child in value.values():
+            image_url = _find_wec_background_hero_image(child)
+            if image_url:
+                return image_url
+
+    elif isinstance(value, list):
+        for child in value:
+            image_url = _find_wec_background_hero_image(child)
+            if image_url:
+                return image_url
+
+    return ""
+
+
+def _wec_event_art(race):
+    """Prefer the official FIAWEC+ 2026 artwork for current-season race folders."""
+    path = str((race or {}).get("path") or "").strip("/")
+    season = str((race or {}).get("year") or "").strip()
+
+    # The official season posters supplied by FIAWEC+ are 2026 artwork.
+    # Older seasons must keep their existing/local artwork and must not
+    # inherit a 2026 poster or 2026 race-page hero just because the route
+    # slug is reused across seasons.
+    if season != "2026":
+        return _wec_local_art(path)
+
+    # Official FIAWEC+ 2026 season posters captured from the FIA WEC page.
+    season_posters_2026 = {
+        "race/6-hours-of-imola": "FIAWEC_Race_Thumb_Imola_2.jpg",
+        "race/totalenergies-6-hours-of-spa-francorchamps": "FIAWEC_Race_Thumb_Spa_2.jpg",
+        "race/24-hours-of-le-mans": "FIAWEC_Race_Thumb_24H.jpg",
+        "race/rolex-6-hours-of-sao-paulo": "FIAWEC_Race_Thumb_SauPaulo_2.jpg",
+        "race/lone-star-le-mans": "FIAWEC_Race_Thumb_Lonestar_2.jpg",
+        "race/6-hours-of-fuji": "FIAWEC_Race_Thumb_Fuji_(1).jpg",
+        "race/barcelona": "FIAWEC_Race_Thumb_Barcelona.jpg",
+        "race/6-hours-of-monza": "FIAWEC_Race_Thumb_Monza.jpg",
+    }
+    poster_file = season_posters_2026.get(path)
+    poster_url = (
+        "https://assets.platform.staylive.io/platform_MaZLpcxHYO6C/" + poster_file
+        if poster_file else ""
+    )
+    if path:
+        try:
+            url = "https://api.staylive.tv/platforms/{}/pages/path/{}".format(
+                PLATFORM_UID, urllib.parse.quote(path, safe="")
+            )
+            response = request_json(
+                url, headers=_api_headers(),
+                cache_ttl=CACHE_TTL_PAGE, cache_key="wec-race-art:" + path,
+            )
+            page = _message(response)
+            art_url = _find_wec_background_hero_image(page)
+            if art_url:
+                return {
+                    "thumb": poster_url or art_url,
+                    "icon": poster_url or art_url,
+                    "poster": poster_url or art_url,
+                    "fanart": art_url,
+                }
+        except Exception as exc:
+            log("WEC event artwork failed for {}: {}".format(path, exc), xbmc.LOGINFO)
+
+    if poster_url:
+        fallback = _wec_local_art(path)
+        fallback["thumb"] = poster_url
+        fallback["icon"] = poster_url
+        fallback["poster"] = poster_url
+        return fallback
+
+    return _wec_local_art(path)
+
+
+def _wec_archive_plot(year, race):
+    lines = ["FIA WEC"]
+    lines.append(str(race.get("label") or "").strip())
+    if race.get("date_label"):
+        lines.append(str(race.get("date_label")).replace(" – ", " - "))
+    return "\n".join(x for x in lines if x)
+
 
 def configure(**deps):
     """Inject main-controller callbacks without importing main.py."""
@@ -250,7 +348,7 @@ def wec_onboard_livestreams(path, label="", year="2026"):
 
     if not streams:
         xbmcgui.Dialog().notification(
-            "FIAWEC+",
+            "FIA WEC+",
             "No onboard livestreams found",
             xbmcgui.NOTIFICATION_INFO,
             3500,
@@ -438,7 +536,7 @@ def wec_race(path, label="", year=""):
                 elif feed_year == wanted_year:
                     filtered.append(f)
                 elif "replay 2026" in title_norm:
-                    # Current FIAWEC+ race pages use this generic replay
+                    # Current FIA WEC+ race pages use this generic replay
                     # bucket for converted FP/Qualifying/Race streams.
                     filtered.append(f)
 
@@ -570,7 +668,7 @@ def wec_race(path, label="", year=""):
         if not feeds and not tag_feeds and not live_videos:
             suffix = " ({})".format(wanted_year) if wanted_year else ""
             xbmcgui.Dialog().notification(
-                "FIAWEC+",
+                "FIA WEC+",
                 "No video feeds found for {}{}".format(race_name, suffix),
                 xbmcgui.NOTIFICATION_WARNING,
                 5000,
@@ -583,7 +681,7 @@ def wec_race(path, label="", year=""):
     except Exception as exc:
         log("WEC race failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             L("WEC-Rennseite fehlgeschlagen:\n\n{}", "WEC race page failed:\n\n{}").format(exc)
         )
         xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
@@ -615,7 +713,7 @@ def _wec_race_feeds(path):
         end_date = discovered.get("end") or ""
         title = discovered.get("title") or "Videos"
 
-        # For FIAWEC+ race pages the date range identifies the season.
+        # For FIA WEC+ race pages the date range identifies the season.
         year = ""
         if len(end_date) >= 4 and end_date[:4].isdigit():
             year = end_date[:4]
@@ -757,9 +855,29 @@ def wec_next_livestreams(year="2026"):
                 start_dt and start_dt <= now_utc and
                 (not end_dt or end_dt > now_utc)
             )
-            live_prefix = "[COLOR red]LIVE[/COLOR] " if is_live else ""
-            base_display = "{} – {}".format(when, title) if when else title
-            display = live_prefix + base_display
+
+            # Keep the title readable on Kodi skins that do not support
+            # emoji glyphs or a visible secondary label.
+            suffix = ""
+            full_when = ""
+            try:
+                start_local = start_dt.astimezone()
+                now_local = now_utc.astimezone()
+                full_when = start_local.strftime("%d.%m.%Y • %H:%M")
+                if is_live:
+                    display = "[COLOR red]LIVE[/COLOR] | {}".format(title)
+                else:
+                    if start_local.date() == now_local.date():
+                        day_label = L("HEUTE", "TODAY")
+                    elif (start_local.date() - now_local.date()).days == 1:
+                        day_label = L("MORGEN", "TOMORROW")
+                    else:
+                        day_label = start_local.strftime("%d.%m.")
+                    suffix = "{} {}".format(day_label, start_local.strftime("%H:%M"))
+                    display = "{} | {}".format(title, suffix)
+            except Exception:
+                full_when = when
+                display = ("[COLOR red]LIVE[/COLOR] | " + title) if is_live else title
             race = live.get("race") or {}
             add_item(
                 display,
@@ -767,7 +885,8 @@ def wec_next_livestreams(year="2026"):
                 playable=True,
                 slug=live.get("slug"),
                 art=_wec_local_art(race.get("path", "")),
-                plot="{} – {}".format(race.get("label", "FIA WEC"), title),
+                plot="{}\n{}".format(full_when or when, "{} – {}".format(race.get("label", "FIA WEC"), title)).strip(),
+                label2=full_when or when,
             )
 
     xbmcplugin.addSortMethod(HANDLE, xbmcplugin.SORT_METHOD_NONE)
@@ -796,14 +915,6 @@ def wec_year(year):
         year_races = [r for r in races if r.get("year") == wanted]
         year_races.sort(key=lambda r: (r.get("date") or "", r.get("label") or ""))
 
-        if wanted == "2026":
-            add_item(
-                L("Nächste Livestreams", "Upcoming livestreams"),
-                "wec_next_livestreams",
-                year=wanted,
-                art=_folder_art(),
-                plot="Currently live and announced FIA WEC livestreams – date and time shown in local time.",
-            )
 
         for race in year_races:
             # The season menu is an archive. For the current season, hide
@@ -828,9 +939,9 @@ def wec_year(year):
                 path=race["path"],
                 event_name=race["label"],
                 year=wanted,
-                art=_wec_local_art(race["path"]),
-                plot="FIA WEC {} – {}".format(wanted, race["label"]),
-                art_rev="1044",
+                art=_wec_event_art(race),
+                plot=_wec_archive_plot(wanted, race),
+                art_rev="1047",
             )
 
         playlists = {
@@ -855,7 +966,7 @@ def wec_year(year):
     except Exception as exc:
         log("WEC year failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             L("WEC-Saison {} konnte nicht geladen werden:\n\n{}", "WEC season {} could not be loaded:\n\n{}").format(year, exc)
         )
         xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
@@ -882,7 +993,7 @@ def wec_icons():
         raise RuntimeError("WEC Icons feed was not found.")
     except Exception as exc:
         log("WEC Icons failed: {}".format(exc), xbmc.LOGERROR)
-        xbmcgui.Dialog().ok("FIAWEC+", L("WEC Icons konnte nicht geladen werden:\n\n{}", "WEC Icons could not be loaded:\n\n{}").format(exc))
+        xbmcgui.Dialog().ok("FIA WEC+", L("WEC Icons konnte nicht geladen werden:\n\n{}", "WEC Icons could not be loaded:\n\n{}").format(exc))
         xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
 
 
@@ -902,6 +1013,14 @@ def wec_series():
             raise RuntimeError("FIA-WEC-Seite hat ein unexpected format.")
 
         races = _discover_wec_races(page)
+
+        add_item(
+            L("Nächste Livestreams", "Upcoming livestreams"),
+            "wec_next_livestreams",
+            year="2026",
+            art=_folder_art(),
+            plot="Currently live and announced FIA WEC livestreams – date and time shown in local time.",
+        )
 
         years = set(r.get("year") for r in races if r.get("year"))
         years.update(("2026", "2025"))
@@ -955,7 +1074,7 @@ def wec_series():
     except Exception as exc:
         log("WEC series failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             L("FIA WEC konnte nicht geladen werden:\n\n{}", "FIA WEC could not be loaded:\n\n{}").format(exc)
         )
         xbmcplugin.endOfDirectory(HANDLE, succeeded=False)

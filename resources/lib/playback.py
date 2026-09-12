@@ -19,7 +19,7 @@ def play_livestream(slug, *, handle, get_livestream, log, translate):
     slug = normalize_slug(slug)
     if not slug:
         xbmcgui.Dialog().notification(
-            "FIAWEC+",
+            "FIA WEC+",
             translate("Ungültiger Livestream-Slug", "Invalid livestream slug"),
             xbmcgui.NOTIFICATION_ERROR,
         )
@@ -48,7 +48,7 @@ def play_livestream(slug, *, handle, get_livestream, log, translate):
     except Exception as exc:
         _fail(
             handle,
-            "FIAWEC+",
+            "FIA WEC+",
             translate(
                 "Livestream-Wiedergabe fehlgeschlagen:\n\n{}",
                 "Livestream playback failed:\n\n{}",
@@ -63,7 +63,7 @@ def play_video(slug, *, handle, get_video, log, translate):
     slug = normalize_slug(slug)
     if not slug:
         xbmcgui.Dialog().notification(
-            "FIAWEC+",
+            "FIA WEC+",
             translate("Ungültiger Video-Slug", "Invalid video slug"),
             xbmcgui.NOTIFICATION_ERROR,
         )
@@ -86,10 +86,10 @@ def play_video(slug, *, handle, get_video, log, translate):
             if is_paid:
                 _fail(
                     handle,
-                    "FIAWEC+",
+                    "FIA WEC+",
                     translate(
-                        "Kostenpflichtiges Abonnement erforderlich\n\nDieses Video erfordert ein kostenpflichtiges FIAWEC+ Abonnement.",
-                        "Paid subscription required\n\nThis video requires a paid FIAWEC+ subscription.",
+                        "Kostenpflichtiges Abonnement erforderlich\n\nDieses Video erfordert ein kostenpflichtiges FIA WEC+ Abonnement.",
+                        "Paid subscription required\n\nThis video requires a paid FIA WEC+ subscription.",
                     ),
                     log,
                     "Paid subscription required",
@@ -98,7 +98,7 @@ def play_video(slug, *, handle, get_video, log, translate):
 
             _fail(
                 handle,
-                "FIAWEC+",
+                "FIA WEC+",
                 translate(
                     "Dieses Video ist derzeit nicht zur Wiedergabe verfügbar.",
                     "This video is currently unavailable for playback.",
@@ -125,7 +125,7 @@ def play_video(slug, *, handle, get_video, log, translate):
     except Exception as exc:
         _fail(
             handle,
-            "FIAWEC+",
+            "FIA WEC+",
             translate(
                 "Wiedergabe fehlgeschlagen:\n\n{}",
                 "Playback failed:\n\n{}",

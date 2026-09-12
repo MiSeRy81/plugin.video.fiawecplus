@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Series/event data helpers for FIAWEC+.
+"""Series/event data helpers for FIA WEC+.
 
 Internal refactor module.  This module deliberately contains no Kodi UI code
 and performs no HTTP requests.  It normalizes and filters data already loaded
@@ -124,7 +124,7 @@ def series_livestream_match(item, series_key):
 def series_video_livestream_session_match(item):
     """Return True for ELMS/MLMC sessions that have a real video livestream.
 
-    FIAWEC+/Staylive also exposes live-timing-only sessions through the
+    FIA WEC+/Staylive also exposes live-timing-only sessions through the
     livestream catalogue. For ELMS and MLMC race weekends, only Qualifying
     and Race are video sessions; practice/test sessions must not be shown as
     playable livestreams.
@@ -172,6 +172,9 @@ def future_series_livestreams(items, series_key, year="2026", now_utc=None):
             "start_dt": start_dt,
             "end": end_raw,
             "end_dt": end_dt,
+            # Keep the original Staylive object so the Kodi UI can use the
+            # stream-specific thumbnail/poster (especially ELMS onboards).
+            "source": item,
         })
         seen.add(slug)
 

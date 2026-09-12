@@ -125,6 +125,20 @@ def render_season_menu(series_key, season_pages, ctx):
         plot_name = "European Le Mans Series"
     else:
         plot_name = "Michelin Le Mans Cup"
+
+    # Direct access to current/upcoming livestreams above the archive years.
+    ctx["add_item"](
+        ctx["L"]("Nächste Livestreams", "Upcoming livestreams"),
+        "series_next_livestreams",
+        series_key=series_key,
+        year="2026",
+        art=ctx["official_series_art"](series_key),
+        plot=ctx["L"](
+            "Aktuell laufende und angekündigte Livestreams – Datum und Uhrzeit in lokaler Zeit.",
+            "Currently live and announced livestreams – date and time shown in local time."
+        ),
+    )
+
     for year in ("2026", "2025", "2024"):
         ctx["add_item"](
             year, "series", slug=season_pages[year],
@@ -178,68 +192,146 @@ def render_series(slug, ctx):
         error_text = str(exc)
         if "Not signed in" in error_text or "sign in" in error_text.lower():
             message = ctx["L"](
-                "Anmeldung erforderlich\n\nBitte melde dich über das FIAWEC+ Add-on an, um auf diese Inhalte zuzugreifen.",
-                "Sign-in required\n\nPlease sign in through the FIAWEC+ add-on to access this content."
+                "Anmeldung erforderlich\n\nBitte melde dich über das FIA WEC+ Add-on an, um auf diese Inhalte zuzugreifen.",
+                "Sign-in required\n\nPlease sign in through the FIA WEC+ add-on to access this content."
             )
         else:
             message = ctx["L"](
                 "Serien-Liste fehlgeschlagen:\n\n{}",
                 "Series list failed:\n\n{}"
             ).format(exc)
-        xbmcgui.Dialog().ok("FIAWEC+", message)
+        xbmcgui.Dialog().ok("FIA WEC+", message)
         xbmcplugin.endOfDirectory(ctx["handle"], succeeded=False)
 
 
 def _render_wec(feeds, series_name, ctx):
+    """Legacy/direct WEC feed renderer kept safe for fallback routes."""
     L = ctx["L"]
     for item in feeds:
         label = pretty_event_name(item["title"], L)
         image_url = ctx["feed_preview_art"](item["start"], item["end"], item["channel"])
         ctx["add_item"](
-            label, "feed", start=item["start"], end=item["end"], channel=item["channel"], page="1",
-            art=ctx["folder_art"](image_url), plot="{} – {}".format(series_name, label),
+            label, "feed",
+            start=item["start"], end=item["end"], channel=item["channel"], page="1",
+            art=ctx["folder_art"](image_url),
+            plot=_event_plot(
+                "FIA WEC",
+                0,
+                label,
+                item["start"], item["end"],
+            ),
         )
+
     if not feeds:
         xbmcgui.Dialog().notification(
-            "FIAWEC+", L("No WEC content feeds found", "No WEC content feeds found"),
-            xbmcgui.NOTIFICATION_WARNING, 5000,
+            "FIA WEC+",
+            L("No WEC content feeds found", "No WEC content feeds found"),
+            xbmcgui.NOTIFICATION_WARNING,
+            5000,
         )
     _finish(ctx["handle"])
+
+
+def _compact_date_range(start_date, end_date):
+    def one(value):
+        m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", str(value or ""))
+        return "{}.{}.{}".format(m.group(3), m.group(2), m.group(1)) if m else ""
+    a, b = one(start_date), one(end_date)
+    return " - ".join(x for x in (a, b) if x)
+
+
+def _event_plot(series_name, round_no, event_name, start_date, end_date, date_label=""):
+    date_line = str(date_label or "").replace(" – ", " - ").strip()
+    if not date_line:
+        date_line = _compact_date_range(start_date, end_date)
+    lines = [series_name, event_name, date_line]
+    return "\n".join(x for x in lines if x)
+
+
+def _race_round_map(items):
+    """Chronological Round 1..n for actual race-weekend items."""
+    valid = []
+    for item in items:
+        if not item or item.get("onboard"):
+            continue
+        title = str(item.get("title") or "").strip()
+        if title.upper() in ("2026 SEASON", "2025 SEASON", "2024 SEASON"):
+            continue
+        valid.append(item)
+    valid.sort(key=lambda x: (str(x.get("start") or ""), str(x.get("title") or "").lower()))
+    return {id(item): pos for pos, item in enumerate(valid, 1)}
+
+
+def _mlmc_round_number(event_name, season):
+    text = str(event_name or "").lower()
+    if "barcelona" in text:
+        return 1
+    if "le castellet" in text:
+        return 2
+    if "road to le mans" in text:
+        return 3
+    if "spa-francorchamps" in text or "spa francorchamps" in text:
+        return 4
+    if str(season) == "2024":
+        if "mugello" in text:
+            return 5
+        if "portimão" in text or "portimao" in text:
+            return 6
+    else:
+        if "silverstone" in text:
+            return 5
+        if "portimão" in text or "portimao" in text:
+            return 6
+    return 0
 
 
 def _render_mlmc(feeds, slug, series_name, ctx):
     L = ctx["L"]
     season = season_from_slug(slug)
-    if season == "2026":
-        ctx["add_item"](
-            L("Nächste Livestreams", "Upcoming livestreams"),
-            "series_next_livestreams", series_key="mlmc", year=season,
-            art=ctx["official_series_art"]("mlmc"),
-            plot="Currently live and announced Michelin Le Mans Cup livestreams – date and time shown in local time.",
-        )
+    round_map = _race_round_map(feeds)
 
     for item in feeds:
         if item["onboard"]:
             continue
         raw_title = item["title"].strip()
-        if raw_title.upper() in ("2026 SEASON", "2025 SEASON", "2024 SEASON"):
+        is_season_feed = raw_title.upper() in ("2026 SEASON", "2025 SEASON", "2024 SEASON")
+        if is_season_feed:
             label = L("Saison {}".format(season), "{} Season".format(season))
+            plot = label
         else:
-            label = michelin_event_name(raw_title, L)
-            if "mugello" in label.lower() and season != "2024":
+            event_name = michelin_event_name(raw_title, L)
+            # The source titles for older MLMC seasons often end in the year.
+            # Keep the year in the folder label only where useful, but remove it
+            # from the clean four-line information panel.
+            clean_event_name = str(event_name or "").strip()
+            year_suffix = " " + str(season)
+            if clean_event_name.endswith(year_suffix):
+                clean_event_name = clean_event_name[:-len(year_suffix)].rstrip()
+            if "mugello" in event_name.lower() and season != "2024":
                 continue
-            weekend = ctx["series_weekend_label"]("mlmc", label, season)
+
+            weekend = ctx["series_weekend_label"]("mlmc", event_name, season)
+            label = event_name
             if weekend:
-                label = weekend + " – " + label
+                label = weekend + " – " + event_name
+
+            round_no = _mlmc_round_number(event_name, season)
+            date_line = (weekend or _compact_date_range(item["start"], item["end"])).replace(" – ", " - ")
+            plot = "\n".join(x for x in (
+                "Michelin Le Mans Cup",
+                clean_event_name,
+                date_line,
+            ) if x)
+
         image_url = ctx["feed_preview_art"](item["start"], item["end"], item["channel"])
         ctx["add_item"](
             label, "feed", start=item["start"], end=item["end"], channel=item["channel"], page="1",
-            art=ctx["folder_art"](image_url), plot="{} – {}".format(series_name, label),
+            art=ctx["folder_art"](image_url), plot=plot,
         )
 
     if not feeds:
         xbmcgui.Dialog().notification(
-            "FIAWEC+", L("No video feeds found for {}", "No video feeds found for {}").format(series_name),
+            "FIA WEC+", L("No video feeds found for {}", "No video feeds found for {}").format(series_name),
             xbmcgui.NOTIFICATION_WARNING, 5000,
         )
     _finish(ctx["handle"])
@@ -248,13 +340,6 @@ def _render_mlmc(feeds, slug, series_name, ctx):
 def _render_elms(feeds, slug, series_name, ctx):
     L = ctx["L"]
     season = season_from_slug(slug)
-    if season == "2026":
-        ctx["add_item"](
-            L("Nächste Livestreams", "Upcoming livestreams"),
-            "series_next_livestreams", series_key="elms", year=season,
-            art=ctx["official_series_art"]("elms"),
-            plot="Currently live and announced European Le Mans Series livestreams – date and time shown in local time.",
-        )
 
     season_feed = None
     events = {}
@@ -272,16 +357,11 @@ def _render_elms(feeds, slug, series_name, ctx):
         else:
             events[key]["main"] = item
 
-    if season_feed:
-        season_art = ctx["feed_preview_art"](
-            season_feed["start"], season_feed["end"], season_feed["channel"]
-        )
-        ctx["add_item"](
-            L("Saison {}".format(season), "{} Season".format(season)),
-            "feed", start=season_feed["start"], end=season_feed["end"], channel=season_feed["channel"], page="1",
-            art=ctx["folder_art"](season_art),
-            plot=L("{} – Saison {}", "{} – Season {}").format(series_name, season),
-        )
+    elms_round_sources = [
+        pair["main"] for pair in events.values() if pair.get("main")
+    ]
+    elms_round_sources.sort(key=lambda x: (str(x.get("start") or ""), str(x.get("title") or "").lower()))
+    elms_round_map = {id(item): pos for pos, item in enumerate(elms_round_sources, 1)}
 
     for key in order:
         pair = events[key]
@@ -305,12 +385,26 @@ def _render_elms(feeds, slug, series_name, ctx):
                 continue
             ctx["add_item"](
                 display_name, "feed", start=main_feed["start"], end=main_feed["end"], channel=main_feed["channel"], page="1",
-                art=ctx["folder_art"](image_url), plot=display_name,
+                art=ctx["folder_art"](image_url),
+                plot=_event_plot(
+                    "European Le Mans Series",
+                    elms_round_map.get(id(main_feed), 0),
+                    event_name,
+                    main_feed["start"], main_feed["end"],
+                    weekend,
+                ),
             )
         else:
             ctx["add_item"](
                 display_name, "event_group",
-                art=ctx["folder_art"](image_url), plot=display_name,
+                art=ctx["folder_art"](image_url),
+                plot=_event_plot(
+                    "European Le Mans Series",
+                    elms_round_map.get(id(main_feed), 0) if main_feed else 0,
+                    event_name,
+                    source["start"], source["end"],
+                    weekend,
+                ),
                 event=event_name,
                 main_start=main_feed["start"] if main_feed else "",
                 main_end=main_feed["end"] if main_feed else "",
@@ -320,9 +414,21 @@ def _render_elms(feeds, slug, series_name, ctx):
                 onboard_channel=onboard_feed["channel"] if onboard_feed else "",
             )
 
+    # Keep general season/additional material after all race weekends.
+    if season_feed:
+        season_art = ctx["feed_preview_art"](
+            season_feed["start"], season_feed["end"], season_feed["channel"]
+        )
+        ctx["add_item"](
+            "{} Season - Additional Content".format(season),
+            "feed", start=season_feed["start"], end=season_feed["end"], channel=season_feed["channel"], page="1",
+            art=ctx["folder_art"](season_art),
+            plot="European Le Mans Series\n{} Season - Additional Content".format(season),
+        )
+
     if not feeds:
         xbmcgui.Dialog().notification(
-            "FIAWEC+", L("No video feeds found for {}", "No video feeds found for {}").format(series_name),
+            "FIA WEC+", L("No video feeds found for {}", "No video feeds found for {}").format(series_name),
             xbmcgui.NOTIFICATION_WARNING, 5000,
         )
     _finish(ctx["handle"])

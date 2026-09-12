@@ -168,13 +168,13 @@ def diagnose_next_sessions():
         text = json.dumps(result, ensure_ascii=False, indent=2)
         log("IMOLA ONBOARD DIAG: {}".format(text), xbmc.LOGINFO)
         xbmcgui.Dialog().textviewer(
-            "FIAWEC+ Diagnostics – Imola Onboard Replays",
+            "FIA WEC+ Diagnostics – Imola Onboard Replays",
             text
         )
 
     except Exception as exc:
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Diagnostics",
+            "FIA WEC+ Diagnostics",
             "Imola onboard diagnostics failed:\n\n{}".format(str(exc)[:900])
         )
 
@@ -267,7 +267,7 @@ def diagnose_extra_content():
     text = json.dumps(result, ensure_ascii=False, indent=2)
     log("EXTRA CONTENT DIAG: {}".format(text), xbmc.LOGINFO)
     xbmcgui.Dialog().textviewer(
-        "FIAWEC+ Diagnostics – Extra Content",
+        "FIA WEC+ Diagnostics – Extra Content",
         text
     )
 
@@ -336,7 +336,7 @@ def diagnose_extra_content():
 
     log("TAG ROUTE DIAG 1.5.14: {}".format(text), xbmc.LOGINFO)
     xbmcgui.Dialog().textviewer(
-        "FIAWEC+ Diagnostics – Imola Tag Query",
+        "FIA WEC+ Diagnostics – Imola Tag Query",
         text
     )
 
@@ -374,9 +374,9 @@ def diagnose_onboard_video_fields():
             "video_keys":sorted(str(k) for k in v.keys()) if isinstance(v,dict) else [],
             "erstes_video":safe,
         },ensure_ascii=False,indent=2)
-        xbmcgui.Dialog().textviewer("FIAWEC+ Diagnostics – Onboard Video Fields", text)
+        xbmcgui.Dialog().textviewer("FIA WEC+ Diagnostics – Onboard Video Fields", text)
     except Exception as exc:
-        xbmcgui.Dialog().ok("FIAWEC+ Diagnostics", str(exc)[:900])
+        xbmcgui.Dialog().ok("FIA WEC+ Diagnostics", str(exc)[:900])
 
 
 def diagnose_tag_structure():
@@ -440,11 +440,11 @@ def diagnose_tag_structure():
         text=json.dumps(result,ensure_ascii=False,indent=2)
         log("COMPACT TAG STRUCTURE DIAG: {}".format(text),xbmc.LOGINFO)
         xbmcgui.Dialog().textviewer(
-            "FIAWEC+ Diagnostics – Compact Onboard Feeds",
+            "FIA WEC+ Diagnostics – Compact Onboard Feeds",
             text
         )
     except Exception as exc:
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Diagnostics",
+            "FIA WEC+ Diagnostics",
             "Compact tag diagnostics failed:\n\n{}".format(str(exc)[:900])
         )

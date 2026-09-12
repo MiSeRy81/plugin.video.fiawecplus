@@ -11,11 +11,7 @@ import html
 import re
 import secrets
 import urllib.parse
-from datetime import datetime, timezone
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    ZoneInfo = None
+from datetime import datetime, timezone, timedelta
 
 def _b64url(data):
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
@@ -64,17 +60,57 @@ def _parse_staylive_datetime(value):
         return None
 
 
+def _last_sunday(year, month):
+    """Return the day number of the last Sunday in a month."""
+    if month == 12:
+        next_month = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
+    else:
+        next_month = datetime(year, month + 1, 1, tzinfo=timezone.utc)
+    last_day = next_month - timedelta(days=1)
+    return last_day.day - ((last_day.weekday() + 1) % 7)
+
+
+def _berlin_utc_offset(dt_utc):
+    """CET/CEST offset using the EU DST rule, independent of system tzdata."""
+    year = dt_utc.year
+    # EU DST: last Sunday in March at 01:00 UTC until
+    # last Sunday in October at 01:00 UTC.
+    march_day = _last_sunday(year, 3)
+    october_day = _last_sunday(year, 10)
+    dst_start = datetime(year, 3, march_day, 1, 0, tzinfo=timezone.utc)
+    dst_end = datetime(year, 10, october_day, 1, 0, tzinfo=timezone.utc)
+    return timedelta(hours=2 if dst_start <= dt_utc < dst_end else 1)
+
+
+def _berlin_datetime(value):
+    """Return German local wall-clock time without depending on Kodi tzdata.
+
+    Staylive timestamps are normalized to UTC first. The CET/CEST offset is
+    then added directly. A naive datetime is intentional here: callers only
+    use date()/strftime() for labels, so no further timezone conversion is
+    required.
+    """
+    try:
+        if isinstance(value, datetime):
+            dt = value
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            dt_utc = dt.astimezone(timezone.utc)
+        else:
+            dt_utc = _parse_staylive_datetime(value)
+
+        if not dt_utc:
+            return None
+
+        return (dt_utc + _berlin_utc_offset(dt_utc)).replace(tzinfo=None)
+    except Exception:
+        return None
+
+
 def _berlin_datetime_label(value):
-    dt = _parse_staylive_datetime(value)
+    dt = _berlin_datetime(value)
     if not dt:
         return ""
-    try:
-        if ZoneInfo is not None:
-            dt = dt.astimezone(ZoneInfo("Europe/Berlin"))
-        else:
-            dt = dt.astimezone()
-    except Exception:
-        dt = dt.astimezone()
     return dt.strftime("%d.%m. %H:%M")
 
 
@@ -118,7 +154,7 @@ def _find_playback_url(video):
     if not isinstance(video, dict):
         return None
 
-    # Known field from FIAWEC+/Staylive
+    # Known field from FIA WEC+/Staylive
     url = video.get("playback_url")
     if isinstance(url, str) and url.startswith(("http://", "https://")):
         return url

@@ -35,8 +35,8 @@ def make_url(action, **params):
     return _d("BASE_URL") + "?" + urllib.parse.urlencode(query)
 
 
-def add_item(label, action=None, playable=False, art=None, plot=None, **params):
-    li = xbmcgui.ListItem(label=label)
+def add_item(label, action=None, playable=False, art=None, plot=None, label2=None, **params):
+    li = xbmcgui.ListItem(label=label, label2=label2 or "")
     info = {"title": label}
     if plot:
         info["plot"] = plot
@@ -94,7 +94,7 @@ def root():
         L("Konto", "Account"),
         "account_menu",
         art=menu_art(),
-        plot=L("FIAWEC+ – Konto und Anmeldung", "FIAWEC+ – account and sign-in"),
+        plot=L("FIA WEC+ – Konto und Anmeldung", "FIA WEC+ – account and sign-in"),
         rev="1041",
     )
     xbmcplugin.addSortMethod(_d("HANDLE"), xbmcplugin.SORT_METHOD_NONE)

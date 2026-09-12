@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <settings>
-    <category label="FIAWEC+">
+    <category label="FIA WEC+">
         <setting id="settings_info" type="lsep" label="Account and sign-in are managed directly in the add-on." />
         <setting id="access_token" type="text" option="hidden" visible="false" label="Access token" default="" />
         <setting id="refresh_token" type="text" option="hidden" visible="false" label="Refresh token" default="" />

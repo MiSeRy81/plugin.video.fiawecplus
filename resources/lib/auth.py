@@ -37,7 +37,7 @@ def L(_de, en):
     return en
 
 def log(msg, level=xbmc.LOGINFO):
-    xbmc.log('[FIAWEC+] {}'.format(msg), level)
+    xbmc.log('[FIA WEC+] {}'.format(msg), level)
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     """Stop urllib from silently following redirects.
@@ -246,7 +246,7 @@ def _cookiejar_to_netscape(jar):
     """Serialize only Staylive/FIAWEC cookies, including HttpOnly cookies."""
     lines = [
         "# Netscape HTTP Cookie File",
-        "# Updated automatically by FIAWEC+ Kodi add-on.",
+        "# Updated automatically by FIA WEC+ Kodi add-on.",
         "# Do not edit while a Kodi login is running.",
     ]
 
@@ -366,7 +366,7 @@ def oauth_cookie_select_shared():
     current = ADDON.getSetting("shared_cookie_path") or ""
     path = xbmcgui.Dialog().browse(
         1,
-        "Select FIAWEC+ cookie file",
+        "Select FIA WEC+ cookie file",
         "files",
         ".txt|.cookie|.cookies|.json",
         False,
@@ -378,14 +378,14 @@ def oauth_cookie_select_shared():
 
     ADDON.setSetting("shared_cookie_path", path)
     xbmcgui.Dialog().notification(
-        "FIAWEC+",
+        "FIA WEC+",
         "Cookie file saved",
         xbmcgui.NOTIFICATION_INFO,
         3000,
     )
 
     if xbmcgui.Dialog().yesno(
-        "FIAWEC+",
+        "FIA WEC+",
         "Cookie file saved.\\n\\nSign in with it now?"
     ):
         oauth_cookie_login_shared()
@@ -398,7 +398,7 @@ def oauth_cookie_login_shared():
 
     if not xbmcvfs.exists(path):
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             "The saved cookie file is not reachable.\\n\\n"
             "Check the file location or select the cookie file again."
         )
@@ -408,13 +408,13 @@ def oauth_cookie_login_shared():
         text = (_read_vfs_text(path) or "").strip()
     except Exception as exc:
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             "The shared cookie file could not be read:\\n\\n{}".format(exc)
         )
         return
 
     if not text:
-        xbmcgui.Dialog().ok("FIAWEC+", "The cookie file is empty.")
+        xbmcgui.Dialog().ok("FIA WEC+", "The cookie file is empty.")
         return
 
     # Repair the malformed Netscape serialization produced by version 1.0.0:
@@ -430,7 +430,7 @@ def oauth_cookie_login_shared():
 
     if "…" in text:
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             "The cookie file contains a truncated cookie (…)."
         )
         return
@@ -482,7 +482,7 @@ def _oauth_cookie_login_with_value(raw_cookie, netscape_text=None, json_text=Non
 
     if imported == 0:
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Cookie Sign-in",
+            "FIA WEC+ Cookie Sign-in",
             "No Staylive cookies could be imported from the file."
         )
         return
@@ -519,7 +519,7 @@ def _oauth_cookie_login_with_value(raw_cookie, netscape_text=None, json_text=Non
 
         if error:
             xbmcgui.Dialog().ok(
-                "FIAWEC+ Cookie Sign-in",
+                "FIA WEC+ Cookie Sign-in",
                 "OAuth error:\n\n{}{}".format(
                     error,
                     ("\n" + error_desc) if error_desc else ""
@@ -530,7 +530,7 @@ def _oauth_cookie_login_with_value(raw_cookie, netscape_text=None, json_text=Non
         if code:
             if returned_state != state:
                 xbmcgui.Dialog().ok(
-                    "FIAWEC+ Cookie Sign-in",
+                    "FIA WEC+ Cookie Sign-in",
                     "OAuth state does not match. Sign-in was cancelled."
                 )
                 return
@@ -554,7 +554,7 @@ def _oauth_cookie_login_with_value(raw_cookie, netscape_text=None, json_text=Non
                 )
 
             xbmcgui.Dialog().ok(
-                "FIAWEC+",
+                "FIA WEC+",
                 "Cookie sign-in successful.\n\n"
                 "Kodi stored its own access/refresh tokens via the browser session."
                 + shared_note
@@ -583,7 +583,7 @@ def _oauth_cookie_login_with_value(raw_cookie, netscape_text=None, json_text=Non
             or "password" in lower_body
         ):
             xbmcgui.Dialog().ok(
-                "FIAWEC+ Cookie Sign-in",
+                "FIA WEC+ Cookie Sign-in",
                 "The Staylive cookies were imported, but Auth0 still requires "
                 "an interactive sign-in.\n\n"
                 "Importierte Cookie-Namen:\n{}\n\n"
@@ -595,7 +595,7 @@ def _oauth_cookie_login_with_value(raw_cookie, netscape_text=None, json_text=Non
             return
 
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Cookie Sign-in",
+            "FIA WEC+ Cookie Sign-in",
             "Kein Authorization Code received.\n\n"
             "Cookie-Namen: {}\n\n"
             "Letzte Redirects:\n{}".format(
@@ -607,13 +607,13 @@ def _oauth_cookie_login_with_value(raw_cookie, netscape_text=None, json_text=Non
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Cookie Sign-in",
+            "FIA WEC+ Cookie Sign-in",
             "HTTP {} beim Cookie-Login.\n\n{}".format(exc.code, detail[:500])
         )
     except Exception as exc:
         log("Cookie login failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Cookie Sign-in",
+            "FIA WEC+ Cookie Sign-in",
             "Cookie sign-in failed:\n\n{}".format(exc)
         )
 
@@ -698,7 +698,7 @@ def _seed_cookiejar_from_json(jar, text):
 def oauth_cookie_login_file():
     path = xbmcgui.Dialog().browse(
         1,
-        "Select FIAWEC+ cookie file",
+        "Select FIA WEC+ cookie file",
         "files",
         ".json|.txt|.cookie|.cookies",
         False,
@@ -732,14 +732,14 @@ def oauth_cookie_login_file():
         text = (text or "").strip()
         if not text:
             xbmcgui.Dialog().ok(
-                "FIAWEC+ Cookie Sign-in",
+                "FIA WEC+ Cookie Sign-in",
                 "The selected file is empty."
             )
             return
 
         if "…" in text:
             xbmcgui.Dialog().ok(
-                "FIAWEC+ Cookie Sign-in",
+                "FIA WEC+ Cookie Sign-in",
                 "The cookie file contains a truncated cookie (…).\n\n"
                 "Export the cookies completely and use the file again."
             )
@@ -772,7 +772,7 @@ def oauth_cookie_login_file():
 
         if "=" not in raw_cookie:
             xbmcgui.Dialog().ok(
-                "FIAWEC+ Cookie Sign-in",
+                "FIA WEC+ Cookie Sign-in",
                 "No supported cookie format was detected.\n\n"
                 "Supported formats are JSON export, Netscape cookies.txt "
                 "or a complete Cookie header."
@@ -784,7 +784,7 @@ def oauth_cookie_login_file():
     except Exception as exc:
         log("Cookie file read failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Cookie Sign-in",
+            "FIA WEC+ Cookie Sign-in",
             "The cookie file could not be read:\n\n{}".format(exc)
         )
 
@@ -802,7 +802,7 @@ def oauth_cookie_login_manual():
 def oauth_import_token_file():
     path = xbmcgui.Dialog().browse(
         1,
-        "Select FIAWEC+ token file",
+        "Select FIA WEC+ token file",
         "files",
         ".json|.txt",
         False,
@@ -835,7 +835,7 @@ def oauth_import_token_file():
 
         text = (text or "").strip()
         if not text:
-            xbmcgui.Dialog().ok("FIAWEC+ Token Import", "The selected file is empty.")
+            xbmcgui.Dialog().ok("FIA WEC+ Token Import", "The selected file is empty.")
             return
 
         # Accept either raw JSON or text where the JSON object was copied with
@@ -857,7 +857,7 @@ def oauth_import_token_file():
         refresh_token = data.get("refresh_token")
         if not access_token or not refresh_token:
             xbmcgui.Dialog().ok(
-                "FIAWEC+ Token Import",
+                "FIA WEC+ Token Import",
                 "The file must contain at least access_token and refresh_token."
             )
             return
@@ -867,7 +867,7 @@ def oauth_import_token_file():
         ADDON.setSetting("login_method", "token_import")
 
         xbmcgui.Dialog().notification(
-            "FIAWEC+",
+            "FIA WEC+",
             "Token file imported successfully",
             xbmcgui.NOTIFICATION_INFO,
             4000
@@ -877,7 +877,7 @@ def oauth_import_token_file():
     except Exception as exc:
         log("Token file import failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Token Import",
+            "FIA WEC+ Token Import",
             "The token file could not be imported:\n\n{}".format(exc)
         )
 
@@ -885,7 +885,7 @@ def oauth_browser_refresh_import():
     """Official browser sign-in with one-time refresh-token handoff.
 
     Authentication (including any CAPTCHA) stays entirely in the official
-    FIAWEC+/Staylive browser flow. Kodi only receives the resulting refresh
+    FIA WEC+/Staylive browser flow. Kodi only receives the resulting refresh
     token and immediately validates it by requesting a fresh access token.
     """
     login_url = "https://plus.fiawec.com/en/app/login"
@@ -905,15 +905,15 @@ def oauth_browser_refresh_import():
 
     if not opened:
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Browser Sign-in",
+            "FIA WEC+ Browser Sign-in",
             "Kodi could not open the browser automatically.\n\n"
             "Open this address in your browser:\n"
             "https://plus.fiawec.com/en/app/login"
         )
 
     xbmcgui.Dialog().ok(
-        "FIAWEC+ Browser Sign-in",
-        "Sign in on the official FIAWEC+ browser page. Complete a CAPTCHA if Staylive asks for one.\n\n"
+        "FIA WEC+ Browser Sign-in",
+        "Sign in on the official FIA WEC+ browser page. Complete a CAPTCHA if Staylive asks for one.\n\n"
         "After sign-in, open the browser Network tools, find the successful oauth/token request and copy ONLY the refresh_token value from its response.\n\n"
         "Return to Kodi and paste the refresh token in the next box."
     )
@@ -930,7 +930,7 @@ def oauth_browser_refresh_import():
     # accidental pastes (entire JSON objects / URLs) before touching settings.
     if token.startswith("{") or token.startswith("http://") or token.startswith("https://") or "access_token" in token:
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Browser Sign-in",
+            "FIA WEC+ Browser Sign-in",
             "Please paste ONLY the refresh_token value, not the complete JSON response or a URL."
         )
         return
@@ -956,7 +956,7 @@ def oauth_browser_refresh_import():
 
         ADDON.setSetting("login_method", "browser")
         xbmcgui.Dialog().notification(
-            "FIAWEC+",
+            "FIA WEC+",
             "Browser sign-in imported successfully",
             xbmcgui.NOTIFICATION_INFO,
             5000,
@@ -970,7 +970,7 @@ def oauth_browser_refresh_import():
         ADDON.setSetting("expires_at", old_expiry)
         log("Browser sign-in token import failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Browser Sign-in",
+            "FIA WEC+ Browser Sign-in",
             "The refresh token could not be validated:\n\n{}".format(exc)
         )
 
@@ -1538,7 +1538,7 @@ def _show_captcha_window(image_path):
         del dlg
 
 def _native_follow_oauth_redirects(current_url, no_redirect_opener, login_url, common_headers, oauth_state, verifier):
-    """Follow Auth0 resume redirects until the FIAWEC+ authorization code appears."""
+    """Follow Auth0 resume redirects until the FIA WEC+ authorization code appears."""
     for _ in range(10):
         parsed = urllib.parse.urlparse(current_url)
         q = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
@@ -1596,12 +1596,12 @@ def _native_follow_oauth_redirects(current_url, no_redirect_opener, login_url, c
 def oauth_direct_login():
     """Native email/password sign-in prototype for Kodi / Android TV.
 
-    This reproduces the observed FIAWEC+/Staylive Auth0 transaction with a
+    This reproduces the observed FIA WEC+/Staylive Auth0 transaction with a
     cookie jar. If Staylive requests a CAPTCHA, Kodi displays the image and the
     user solves it manually. CAPTCHA solving is never automated.
     """
     username = xbmcgui.Dialog().input(
-        "FIAWEC+ email",
+        "FIA WEC+ email",
         defaultt="",
         type=xbmcgui.INPUT_ALPHANUM,
     ).strip()
@@ -1609,7 +1609,7 @@ def oauth_direct_login():
         return
 
     password = xbmcgui.Dialog().input(
-        "FIAWEC+ password",
+        "FIA WEC+ password",
         defaultt="",
         type=xbmcgui.INPUT_ALPHANUM,
         option=xbmcgui.ALPHANUM_HIDE_INPUT,
@@ -1658,7 +1658,7 @@ def oauth_direct_login():
     }
 
     try:
-        # Seed the same FIAWEC+ site context used by the official login page.
+        # Seed the same FIA WEC+ site context used by the official login page.
         try:
             seed = urllib.request.Request(
                 "https://plus.fiawec.com/en/app/login",
@@ -1667,7 +1667,7 @@ def oauth_direct_login():
             r = opener.open(seed, timeout=30)
             r.read()
         except Exception as exc:
-            log("FIAWEC+ native sign-in seed request failed: {}".format(exc), xbmc.LOGDEBUG)
+            log("FIA WEC+ native sign-in seed request failed: {}".format(exc), xbmc.LOGDEBUG)
 
         # Start the exact observed Auth0 Authorization Code + PKCE transaction.
         req = urllib.request.Request(
@@ -1742,7 +1742,7 @@ def oauth_direct_login():
             captcha_path = _captcha_image_from_html(body, login_url, opener)
             if captcha_path:
                 xbmcgui.Dialog().ok(
-                    "FIAWEC+ CAPTCHA",
+                    "FIA WEC+ CAPTCHA",
                     "Staylive requires a CAPTCHA.\n\n"
                     "The CAPTCHA image will now be shown in a Kodi window for 20 seconds. "
                     "Please memorize the code. Afterwards Kodi will open the input box."
@@ -1750,7 +1750,7 @@ def oauth_direct_login():
                 _show_captcha_window(captcha_path)
             else:
                 xbmcgui.Dialog().ok(
-                    "FIAWEC+ CAPTCHA",
+                    "FIA WEC+ CAPTCHA",
                     "Staylive requires a CAPTCHA, but this test could not extract the CAPTCHA image from the login page."
                 )
                 return
@@ -1771,7 +1771,7 @@ def oauth_direct_login():
             )
             ADDON.setSetting("login_method", "email_password")
             xbmcgui.Dialog().notification(
-                "FIAWEC+", "Email/password sign-in successful", xbmcgui.NOTIFICATION_INFO, 5000
+                "FIA WEC+", "Email/password sign-in successful", xbmcgui.NOTIFICATION_INFO, 5000
             )
             xbmc.executebuiltin("Container.Refresh")
             return
@@ -1788,12 +1788,12 @@ def oauth_direct_login():
             msg = "Staylive did not accept the CAPTCHA code."
         else:
             msg = "Staylive returned HTTP {} instead of the expected login redirect.".format(status)
-        xbmcgui.Dialog().ok("FIAWEC+ Email/Password", msg)
+        xbmcgui.Dialog().ok("FIA WEC+ Email/Password", msg)
 
     except Exception as exc:
         log("Native email/password login failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Email/Password",
+            "FIA WEC+ Email/Password",
             "Native sign-in failed:\n\n{}".format(exc),
         )
     finally:
@@ -1853,14 +1853,14 @@ def _ensure_access_token():
 def oauth_refresh():
     if _refresh_access_token_silent():
         xbmcgui.Dialog().notification(
-            "FIAWEC+",
+            "FIA WEC+",
             "Access token refreshed successfully",
             xbmcgui.NOTIFICATION_INFO,
             4000,
         )
     else:
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Login",
+            "FIA WEC+ Login",
             "Token refresh failed. Please sign in again."
         )
 
@@ -1868,7 +1868,7 @@ def oauth_refresh_test():
     refresh_token = ADDON.getSetting("refresh_token")
     if not refresh_token:
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Token Test",
+            "FIA WEC+ Token Test",
             "No refresh token is available."
         )
         return
@@ -1877,7 +1877,7 @@ def oauth_refresh_test():
         old_access = ADDON.getSetting("access_token")
         if not _refresh_access_token_silent():
             xbmcgui.Dialog().ok(
-                "FIAWEC+ Token Test",
+                "FIA WEC+ Token Test",
                 "Token refresh failed."
             )
             return
@@ -1891,7 +1891,7 @@ def oauth_refresh_test():
 
         changed = bool(new_access and new_access != old_access)
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Token Test",
+            "FIA WEC+ Token Test",
             "Refresh successful.\n\n"
             "New access token: {}\n"
             "Valid for about {} minutes\n"
@@ -1904,7 +1904,7 @@ def oauth_refresh_test():
     except Exception as exc:
         log("Refresh test failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+ Token Test",
+            "FIA WEC+ Token Test",
             "Token refresh failed:\n\n{}".format(exc)
         )
 
@@ -1956,7 +1956,7 @@ def account_menu(add_item, folder_art, request_json, api_headers, handle):
     login_method = _login_method_label() if logged_in else "Not signed in"
     auto_login = "active" if bool(ADDON.getSetting("refresh_token")) else "not available"
     status_plot = (
-        "FIAWEC+ Account\nSigned in: {}\nSign-in method: {}\nAccess: {}\nAutomatic sign-in: {}"
+        "FIA WEC+ Account\nSigned in: {}\nSign-in method: {}\nAccess: {}\nAutomatic sign-in: {}"
     ).format("yes" if logged_in else "no", login_method, access_plain, auto_login)
     add_item("Account · {}".format(access_label), "oauth_status", art=folder_art(), plot=status_plot)
     if logged_in:
@@ -1988,11 +1988,11 @@ def oauth_status():
                 lines.append("Access token valid for about {} more minutes".format(remain // 60))
         except Exception:
             pass
-    xbmcgui.Dialog().ok("FIAWEC+ Account", "\n".join(lines))
+    xbmcgui.Dialog().ok("FIA WEC+ Account", "\n".join(lines))
 
 
 def oauth_logout():
-    confirmed = xbmcgui.Dialog().yesno("FIAWEC+", "Do you really want to sign out on this Kodi device?")
+    confirmed = xbmcgui.Dialog().yesno("FIA WEC+", "Do you really want to sign out on this Kodi device?")
     if not confirmed:
         return
     for key in (
@@ -2001,5 +2001,5 @@ def oauth_logout():
         "oauth_state", "last_authorize_url", "login_method",
     ):
         ADDON.setSetting(key, "")
-    xbmcgui.Dialog().notification("FIAWEC+", "Signed out", xbmcgui.NOTIFICATION_INFO, 3000)
+    xbmcgui.Dialog().notification("FIA WEC+", "Signed out", xbmcgui.NOTIFICATION_INFO, 3000)
     xbmc.executebuiltin("Container.Refresh")

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Static FIAWEC+/Staylive configuration and season metadata.
+"""Static FIA WEC+/Staylive configuration and season metadata.
 
 Internal refactor module: intentionally contains data only.
 """

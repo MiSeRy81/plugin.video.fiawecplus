@@ -126,7 +126,7 @@ def render_tag_feed(tags, start, end, page_num, all_tags_required, suppress_acce
             )
         if not videos:
             xbmcgui.Dialog().notification(
-                "FIAWEC+",
+                "FIA WEC+",
                 ctx["L"]("Keine Onboard-Replays in diesem Feed found.", "No onboard replays found in this feed."),
                 xbmcgui.NOTIFICATION_INFO, 3500,
             )
@@ -135,7 +135,7 @@ def render_tag_feed(tags, start, end, page_num, all_tags_required, suppress_acce
     except Exception as exc:
         ctx["log"]("Tag feed failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             ctx["L"]("Onboard-Replay-Feed fehlgeschlagen:\n\n{}", "Onboard replay feed failed:\n\n{}").format(exc),
         )
         xbmcplugin.endOfDirectory(ctx["handle"], succeeded=False)
@@ -158,7 +158,7 @@ def render_originals(ctx):
 def render_playlist(uid, label, ctx):
     uid = (uid or "").strip()
     if not uid:
-        xbmcgui.Dialog().ok("FIAWEC+", ctx["L"]("Invalid playlist ID.", "Invalid playlist ID."))
+        xbmcgui.Dialog().ok("FIA WEC+", ctx["L"]("Invalid playlist ID.", "Invalid playlist ID."))
         xbmcplugin.endOfDirectory(ctx["handle"], succeeded=False)
         return
     referer = "https://plus.fiawec.com/en/playlist/{}".format(uid)
@@ -172,7 +172,7 @@ def render_playlist(uid, label, ctx):
             videos = ctx["collect_playlist_videos"](ctx["message"](metadata))
         if not videos:
             xbmcgui.Dialog().ok(
-                "FIAWEC+",
+                "FIA WEC+",
                 ctx["L"]("{} wurde geladen, aber es wurden keine Videos erkannt.",
                          "{} was loaded, but no videos were found.").format(label),
             )
@@ -206,11 +206,81 @@ def render_playlist(uid, label, ctx):
     except Exception as exc:
         ctx["log"]("Playlist failed: {}".format(exc), xbmc.LOGERROR)
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             ctx["L"]("{} konnte nicht geladen werden:\n\n{}", "{} could not be loaded:\n\n{}").format(label, exc),
         )
         xbmcplugin.endOfDirectory(ctx["handle"], succeeded=False)
 
+
+
+def _is_elms_onboard_video(video):
+    if not isinstance(video, dict):
+        return False
+    name = str(video.get("name") or video.get("title") or "")
+    low = name.lower()
+    return (
+        "elms" in low
+        and bool(re.search(r"(?:n[°ºo]?\s*|#)\s*\d{1,3}", name, re.I))
+        and any(token in low for token in ("lmp2", "lmp3", "lmgt3"))
+    )
+
+
+def _elms_onboard_compact_title(name):
+    original = str(name or "").strip()
+    low = original.lower()
+
+    if "qualifying" in low:
+        session = "Qualifying"
+    else:
+        # Some ELMS race onboard titles (e.g. Barcelona) omit the word "Race".
+        session = "Race"
+
+    if "lmp2 pro/am" in low or "lmp2 pro-am" in low:
+        cls = "LMP2 PRO/AM"
+    elif "lmp2" in low:
+        cls = "LMP2"
+    elif "lmp3" in low:
+        cls = "LMP3"
+    elif "lmgt3" in low:
+        cls = "LMGT3"
+    else:
+        cls = ""
+
+    # Keep only car number + team from the first title segment.
+    first = original.split("|", 1)[0].strip()
+    first = re.sub(r"(?i)^n[°ºo]?\s*", "#", first)
+    first = re.sub(
+        r"\s*[-–]\s*(?:LMP2\s*PRO[/ -]?AM|LMP2|LMP3|LMGT3)\s*$",
+        "",
+        first,
+        flags=re.I,
+    ).strip()
+
+    return " | ".join(x for x in ("ELMS", session, cls, first) if x)
+
+
+def _elms_onboard_sort_key(video):
+    name = str((video or {}).get("name") or (video or {}).get("title") or "")
+    low = name.lower()
+
+    if "qualifying" in low:
+        session_order = 1
+    else:
+        # Session-less ELMS onboard titles are race onboards.
+        session_order = 0
+
+    if "lmp2" in low:
+        class_order = 0
+    elif "lmp3" in low:
+        class_order = 1
+    elif "lmgt3" in low:
+        class_order = 2
+    else:
+        class_order = 9
+
+    number_match = re.search(r"(?:n[°ºo]?\s*|#)\s*(\d{1,3})", name, re.I)
+    number = int(number_match.group(1)) if number_match else 9999
+    return (session_order, class_order, number, low)
 
 def render_feed(start, end, channel_id, page_num, forced_access, suppress_access, ctx):
     try:
@@ -224,13 +294,27 @@ def render_feed(start, end, channel_id, page_num, forced_access, suppress_access
         videos = ctx["message"](response)
         if not isinstance(videos, list):
             raise RuntimeError("Video-Feed hat ein unexpected format.")
+
+        # ELMS archive onboard feeds use the normal /videos/feed endpoint.
+        # Apply compact titles only when the whole returned page is made up
+        # of recognizable ELMS onboard videos.
+        playable_videos = [v for v in videos if isinstance(v, dict)]
+        elms_onboard_feed = bool(playable_videos) and all(
+            _is_elms_onboard_video(v) for v in playable_videos
+        )
+        if elms_onboard_feed:
+            videos = sorted(videos, key=_elms_onboard_sort_key)
+
         for video in videos:
             if not isinstance(video, dict):
                 continue
             title = video.get("name") or "Video"
             original_title = title
-            display_title = title if str(suppress_access) == "1" else video_display_title(
-                video, title, forced_access=forced_access)
+            if elms_onboard_feed and _is_elms_onboard_video(video):
+                display_title = _elms_onboard_compact_title(title)
+            else:
+                display_title = title if str(suppress_access) == "1" else video_display_title(
+                    video, title, forced_access=forced_access)
             slug = video.get("seo_string") or ""
             if not slug:
                 continue
@@ -272,7 +356,7 @@ def render_feed(start, end, channel_id, page_num, forced_access, suppress_access
         if "404" in text and "No videos found on channels" in text:
             ctx["log"]("Feed empty (future/unpublished): {}".format(text), xbmc.LOGINFO)
             xbmcgui.Dialog().notification(
-                "FIAWEC+", "No videos are available for this race yet.",
+                "FIA WEC+", "No videos are available for this race yet.",
                 xbmcgui.NOTIFICATION_INFO, 3500,
             )
             xbmcplugin.setContent(ctx["handle"], "videos")
@@ -284,7 +368,7 @@ def render_feed(start, end, channel_id, page_num, forced_access, suppress_access
         except Exception:
             debug_url = ctx["L"]("(URL could not be built)", "(URL could not be built)")
         xbmcgui.Dialog().ok(
-            "FIAWEC+",
+            "FIA WEC+",
             ctx["L"]("Video-Feed fehlgeschlagen:\n\n{}\n\nURL:\n{}",
                      "Video feed failed:\n\n{}\n\nURL:\n{}").format(exc, debug_url),
         )
