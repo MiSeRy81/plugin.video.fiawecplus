@@ -27,7 +27,6 @@ Developed and maintained by **MiSeRy**.
 - FIA WEC+ account authentication
 - Email/password sign-in
 - Cookie-based sign-in
-- Shared cookie-file support
 - Automatic access-token renewal
 - Internal caching for faster navigation
 
@@ -87,7 +86,6 @@ Available login methods include:
 - Email and password
 - Existing FIA WEC+ / Staylive session cookie
 - Cookie file
-- Shared cookie file for multiple Kodi devices
 
 Access and refresh tokens are handled automatically where possible.
 
