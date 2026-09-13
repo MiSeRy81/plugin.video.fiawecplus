@@ -1,35 +1,35 @@
 # Changelog
 
-## FIA WEC+ v1.7
+## FIA WEC+ v1.7.5
 
-### WEC
+### UI / Video information
 
-- Added official FIAWEC+ 2026 race posters.
-- Uses official WEC race-page Hero/Cover images as fanart backgrounds when available.
-- Keeps older WEC seasons on their existing local artwork.
-- Includes the corrected Spa-Francorchamps and São Paulo 2026 artwork mappings.
-- Keeps the cleaned WEC archive renderer and event information layout.
+- Added compact three-line information for normal WEC, ELMS and MLMC videos.
+- Unified WEC and ELMS onboard information into a clean three-line layout.
+- Removed duplicate class information from onboard vehicle lines.
+- WEC onboards now use the selected Hypercar/LMGT3 folder as the class source.
+- Added Spanish `[ES]` language detection to the compact information view.
+- Cleaned WEC archive titles that already contain the session name.
 
-### ELMS / Michelin Le Mans Cup
+### ELMS Onboards
 
-- Improved Upcoming Livestreams with chronological sorting and stream-specific artwork.
-- Displays `LIVE` for currently running streams and compact date/time prefixes for upcoming sessions.
-- Supports `TODAY` / `TOMORROW` labels where the device date can be resolved reliably.
-- Keeps ELMS onboard livestreams and replays with compact class, car and session information.
-- Limits ELMS/MLMC upcoming video sessions to actual Qualifying and Race feeds.
-- Uses deterministic CET/CEST conversion for German local stream times with safe fallbacks.
-- Keeps corrected weekend dates and cleaned event information panels.
-- Removes the separate Round line from race information.
+- Improved ELMS onboard discovery for separate Staylive event channels.
+- Added verified Spa-Francorchamps onboard support through channel `7513` (`elms-spa-onboards`).
+- Added verified Silverstone onboard support through channel `7614` (`elms-silverstone-onboards`).
+- Added a generic fallback for future `elms-<event>-onboards` channels.
 
 ### General
 
-- Provider name is now `MiSeRy`.
-- Visible add-on name remains `FIA WEC+`.
-- Keeps email/password and cookie-based sign-in methods.
-- Keeps subscription and sign-in checks for protected content.
-- Preserves EN, FR and Raw Sound stream variants.
-- Preserves WEC/ELMS onboard support and excludes MLMC onboard folders.
-- Cleaned release metadata and removed development/test remnants.
+- Keeps the existing Upcoming Livestreams layout unchanged.
+- Preserves WEC 2026 official artwork, Hero/Cover backgrounds, login methods, subscription checks and existing playback behavior.
+
+## FIA WEC+ v1.7
+
+- Added official FIAWEC+ 2026 race posters and Hero/Cover artwork.
+- Improved ELMS/MLMC Upcoming Livestreams with stream-specific artwork, LIVE/TODAY/TOMORROW labels and chronological sorting.
+- Improved local CET/CEST handling and ELMS onboard presentation.
+- Cleaned event information, dates, naming and release metadata.
+- Provider name changed to `MiSeRy`.
 
 ## FIA WEC+ v1.6.14
 

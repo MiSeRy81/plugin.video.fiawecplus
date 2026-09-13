@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.fiawecplus"
        name="FIA WEC+"
-       version="1.7"
+       version="1.7.5"
        provider-name="MiSeRy">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
@@ -17,18 +17,26 @@
         <platform>all</platform>
         <license>MIT</license>
 	<source>https://github.com/MiSeRy81/plugin.video.fiawecplus</source>
-        <news lang="de_DE">
+        <news lang="en_GB">
+[1.7.5]
+- Compact three-line information for regular WEC/ELMS/MLMC videos
+- Unified three-line presentation for WEC and ELMS onboard videos
+- Removed duplicate class information from onboard entries
+- WEC onboard videos now correctly use Hypercar/LMGT3 from the selected folder
+- Added Spanish ES language detection
+- Cleaned WEC archive titles containing embedded session names
+- Improved ELMS onboard detection for separate Staylive event channels
+- Spa-Francorchamps onboards use verified channel 7513
+- Silverstone onboards use verified channel 7614
+- Added a general fallback for future elms-&lt;event&gt;-onboards channels
+- Upcoming Livestreams presentation remains unchanged
+
 [1.7]
-- Aufgeräumte stabile Basis auf Grundlage der getesteten 1.6.14
-- WEC 2026 mit offiziellen FIAWEC+-Rennpostern und Hero/Cover-Hintergründen
-- Ältere WEC-Saisons behalten ihr bisheriges lokales Artwork
-- ELMS/MLMC „Upcoming livestreams“ mit chronologischer Sortierung und stream-spezifischen Vorschaubildern
-- LIVE-Anzeige sowie TODAY/TOMORROW/Datum-Zeit-Darstellung für Livestreams
-- ELMS-Onboards inklusive Klassen-, Fahrzeug- und Sessioninformationen
-- ELMS/MLMC-Livestreamfilter auf echte Qualifying- und Race-Video-Feeds begrenzt
-- Eventinformationen und Wochenenddaten bereinigt; separate Round-Zeile entfernt
-- Account-/Cookie-Anzeige vereinheitlicht
-- Anbietername in Kodi: MiSeRy
+- Added official FIA WEC+ 2026 race posters and Hero/Cover backgrounds
+- Improved ELMS/MLMC Upcoming Livestreams with chronological sorting and stream-specific thumbnails
+- Added LIVE/TODAY/TOMORROW labels and improved local time handling
+- Unified account/cookie status display
+- Kodi provider name changed to MiSeRy
         </news>
         <assets>
             <icon>resources/icon.png</icon>

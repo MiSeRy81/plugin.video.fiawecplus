@@ -23,6 +23,7 @@ from resources.lib.utils import (
     _message, _parse_staylive_datetime, _berlin_datetime_label, normalize_slug,
     _clean_text, _duration_seconds,
 )
+from resources.lib.video_menu import three_line_video_plot
 from resources.lib.series_data import (
     discover_wec_races as _series_data_discover_wec_races,
     future_wec_livestreams as _series_data_future_wec_livestreams,
@@ -475,7 +476,7 @@ def _add_wec_replay_video(video):
         "video",
         {
             "title": title,
-            "plot": _clean_text(video.get("description")) or title,
+            "plot": three_line_video_plot(title, _clean_text(video.get("description")), "WEC"),
             "duration": _duration_seconds(video.get("duration")),
         },
     )
@@ -841,7 +842,7 @@ def wec_next_livestreams(year="2026"):
             L("Derzeit keine laufenden oder zukünftigen Livestreams angekündigt", "No live or upcoming livestreams announced right now"),
             "noop",
             art=_folder_art(),
-            plot=L("Staylive hat derzeit keine laufenden oder zukünftigen WEC-Livestreams für {} veröffentlicht.", "Staylive hasn't published any live or upcoming WEC livestreams for {} right now.").format(wanted),
+            plot="No upcoming WEC livestreams are available right now.",
         )
     else:
         for live in streams:

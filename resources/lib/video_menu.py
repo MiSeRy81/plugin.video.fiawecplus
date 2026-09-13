@@ -48,6 +48,158 @@ def short_video_title(name):
     return cleaned.strip(" |") or name
 
 
+def three_line_video_plot(title, description="", series_hint=""):
+    """Compact three-line info for normal archive/video entries.
+
+    Upcoming livestreams have their own layout and intentionally do not use
+    this helper.
+    """
+    raw = " ".join(str(title or "").split()).strip()
+    if not raw:
+        return str(description or "").strip()
+
+    parts = [p.strip() for p in re.split(r"\s*\|\s*", raw) if p.strip()]
+    series = str(series_hint or "").strip().upper()
+    language = ""
+    session = ""
+    event = ""
+    extras = []
+
+    sessions = (
+        "Race", "Qualifying", "Hyperpole", "Warmup",
+        "Free Practice 1", "Free Practice 2", "Free Practice 3", "Free Practice 4",
+        "Practice 1", "Practice 2", "Practice 3", "Practice 4",
+        "Highlights", "Full Race",
+    )
+
+    def _normalize_car_segment(text):
+        text = " ".join(str(text or "").split()).strip()
+        if not text:
+            return ""
+        text = re.sub(r"(?i)^n[°ºo]?\s*", "#", text)
+        text = re.sub(r"(?i)(?:^|\s)onboard(?:$|\s)", " ", text).strip()
+        text = re.sub(
+            r"\s*[-–]\s*(?:LMP2\s*PRO[/ -]?AM|LMP2|LMP3|LMGT3|HYPERCAR)\s*$",
+            "",
+            text,
+            flags=re.I,
+        ).strip()
+        return text.strip(" -–|•")
+
+    for original in parts:
+        part = original.strip()
+
+        lang_match = re.search(r"\[(EN|FR|ES|RAW SOUND)\]", part, re.I)
+        if lang_match:
+            lang = lang_match.group(1).upper()
+            language = "Raw Sound" if lang == "RAW SOUND" else lang
+            part = re.sub(r"\[(?:EN|FR|ES|RAW SOUND)\]", "", part, flags=re.I).strip()
+
+        for code in ("WEC", "ELMS", "MLMC"):
+            if re.search(r"(?:^|\s){}(?:$|\s)".format(code), part, re.I):
+                if not series:
+                    series = code
+                part = re.sub(r"(?:^|\s){}(?:$|\s)".format(code), " ", part, flags=re.I).strip()
+                break
+
+        if not part:
+            continue
+
+        matched_session = next((x for x in sessions if part.lower() == x.lower()), "")
+        if matched_session and not session:
+            session = matched_session
+            continue
+
+        # Some WEC archive titles combine event and session in one segment,
+        # for example "Lone Star Le Mans - Qualifying". Split that into the
+        # same three-line layout used by the other series.
+        if not session:
+            for candidate in sorted(sessions, key=len, reverse=True):
+                match = re.match(
+                    r"^(.*?)\s*[-–]\s*{}$".format(re.escape(candidate)),
+                    part,
+                    flags=re.I,
+                )
+                if match and match.group(1).strip():
+                    part = match.group(1).strip()
+                    session = candidate
+                    break
+
+        if not event and (
+            re.search(r"\b20\d{2}\b", part)
+            or re.search(
+                r"\b(hours?|le mans|imola|spa|silverstone|fuji|monza|barcelona|portim|s[aã]o paulo|lusail|qatar)\b",
+                part, re.I,
+            )
+        ):
+            event = part
+            continue
+
+        extras.append(part)
+
+    joined = " | ".join(parts)
+
+    # Onboard replay format:
+    # #21 United Autosports
+    # Race • LMP2 PRO/AM
+    # ELMS • Onboard
+    if re.search(r"(?:n[°ºo]?\s*|#)\s*\d{1,3}", joined, re.I) and re.search(
+        r"\b(?:LMP2(?:\s*PRO[/ -]?AM)?|LMP3|LMGT3|HYPERCAR)\b", joined, re.I
+    ):
+        cls_match = re.search(
+            r"\b(LMP2\s*PRO[/ -]?AM|LMP2|LMP3|LMGT3|HYPERCAR)\b", joined, re.I
+        )
+        cls = cls_match.group(1).upper().replace("PRO-AM", "PRO/AM") if cls_match else ""
+        if cls == "HYPERCAR":
+            cls = "Hypercar"
+
+        car = ""
+        for part in parts:
+            if re.search(r"(?:n[°ºo]?\s*|#)\s*\d{1,3}", part, re.I):
+                car = _normalize_car_segment(part)
+                break
+        if not car:
+            car_match = re.search(r"((?:n[°ºo]?\s*|#)\s*\d{1,3}[^|]*)", joined, re.I)
+            car = _normalize_car_segment(car_match.group(1) if car_match else "")
+
+        onboard_session = session or ("Qualifying" if "qualifying" in joined.lower() else "Race")
+
+        return "\n".join(x for x in (
+            car or event or raw,
+            " • ".join(x for x in (onboard_session, cls) if x),
+            " • ".join(x for x in (series or "WEC", "Onboard") if x),
+        ) if x)
+
+    # Normal video format:
+    # Goodyear 4 Hours of Silverstone 2026
+    # Qualifying
+    # ELMS • Raw Sound
+    if not event and extras:
+        event = max(extras, key=len)
+        extras.remove(event)
+
+    if not session:
+        low = raw.lower()
+        for candidate in sessions:
+            if candidate.lower() in low:
+                session = candidate
+                break
+
+    lines = [
+        event or raw,
+        session or (extras[0] if extras else ""),
+        " • ".join(x for x in (series, language) if x),
+    ]
+    lines = [x for x in lines if x]
+
+    if len(lines) < 3:
+        desc = " ".join(str(description or "").split()).strip()
+        if desc and desc not in lines:
+            lines.append(desc)
+
+    return "\n".join(lines[:3])
+
+
 def extract_video_list(response, message):
     payload = message(response)
     if isinstance(payload, list):
@@ -107,7 +259,7 @@ def render_tag_feed(tags, start, end, page_num, all_tags_required, suppress_acce
             li.setProperty("IsPlayable", "true")
             li.setInfo("video", {
                 "title": title,
-                "plot": ctx["clean_text"](video.get("description")) or title,
+                "plot": three_line_video_plot(title, ctx["clean_text"](video.get("description"))),
                 "duration": ctx["duration_seconds"](video.get("duration")),
             })
             thumb = video.get("thumbnail") or ctx["extract_art_url"](video)
@@ -188,7 +340,7 @@ def render_playlist(uid, label, ctx):
             li.setProperty("IsPlayable", "true")
             li.setInfo("video", {
                 "title": title,
-                "plot": ctx["clean_text"](video.get("description")) or title,
+                "plot": three_line_video_plot(title, ctx["clean_text"](video.get("description"))),
                 "duration": ctx["duration_seconds"](video.get("duration")),
             })
             thumb = video.get("thumbnail") or video.get("thumbnail_url") or video.get("image")
@@ -322,7 +474,7 @@ def render_feed(start, end, channel_id, page_num, forced_access, suppress_access
             li.setProperty("IsPlayable", "true")
             li.setInfo("video", {
                 "title": title,
-                "plot": ctx["clean_text"](video.get("description")) or original_title,
+                "plot": three_line_video_plot(original_title, ctx["clean_text"](video.get("description"))),
                 "duration": ctx["duration_seconds"](video.get("duration")),
             })
             thumb = video.get("thumbnail")

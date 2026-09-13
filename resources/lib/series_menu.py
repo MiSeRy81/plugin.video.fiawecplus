@@ -45,10 +45,36 @@ def pretty_event_name(title, L):
 
 
 def event_key(title):
+    """Return a stable ELMS event key for pairing main and onboard feeds.
+
+    Staylive occasionally publishes an onboard feed with sponsor/year wording
+    that differs from the main race feed (for example Silverstone). Pair known
+    race weekends by venue first so those feeds still land in the same folder.
+    """
     value = (title or "").strip()
     if value.upper().startswith("REPLAY ONBOARD - "):
         value = value[len("REPLAY ONBOARD - "):].strip()
-    return value.upper()
+
+    normalized = value.upper()
+    normalized = normalized.replace("PORTIMÃO", "PORTIMAO")
+    normalized = re.sub(r"\b20\d{2}\b", " ", normalized)
+    normalized = re.sub(r"[^A-Z0-9]+", " ", normalized)
+    normalized = " ".join(normalized.split())
+
+    venue_keys = (
+        ("SILVERSTONE", "SILVERSTONE"),
+        ("SPA FRANCORCHAMPS", "SPA-FRANCORCHAMPS"),
+        ("LE CASTELLET", "LE CASTELLET"),
+        ("BARCELONA", "BARCELONA"),
+        ("IMOLA", "IMOLA"),
+        ("MUGELLO", "MUGELLO"),
+        ("PORTIMAO", "PORTIMAO"),
+    )
+    for token, key in venue_keys:
+        if token in normalized:
+            return key
+
+    return normalized
 
 
 def is_onboard_title(title):
@@ -337,6 +363,103 @@ def _render_mlmc(feeds, slug, series_name, ctx):
     _finish(ctx["handle"])
 
 
+
+_ELMS_ONBOARD_VERIFIED_CHANNELS = {
+    "SILVERSTONE": ("elms-silverstone-onboards", "7614"),
+    "SPA-FRANCORCHAMPS": ("elms-spa-onboards", "7513"),
+}
+
+
+def _elms_onboard_channel_path(event_key_value):
+    """Return the expected Staylive channel path for an ELMS event key."""
+    key = str(event_key_value or "").strip().upper()
+    if key == "SPA-FRANCORCHAMPS":
+        venue = "spa"
+    elif key == "LE CASTELLET":
+        venue = "le-castellet"
+    else:
+        venue = key.lower().replace(" ", "-")
+    venue = re.sub(r"[^a-z0-9-]+", "-", venue).strip("-")
+    return "elms-{}-onboards".format(venue) if venue else ""
+
+
+def _find_channel_record(value, expected_path):
+    """Recursively find a Staylive channel object matching expected_path."""
+    expected = str(expected_path or "").strip().lower()
+    if isinstance(value, dict):
+        path = str(
+            value.get("path") or value.get("channelPath") or
+            value.get("channel_path") or value.get("seo_string") or ""
+        ).strip().lower()
+        channel_id = value.get("id") or value.get("channel") or value.get("channelId") or value.get("channel_id")
+        if path == expected and channel_id not in (None, ""):
+            return {"path": path, "channel": str(channel_id)}
+        for child in value.values():
+            found = _find_channel_record(child, expected_path)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for child in value:
+            found = _find_channel_record(child, expected_path)
+            if found:
+                return found
+    return None
+
+
+def _resolve_elms_onboard_channel(event_key_value, ctx):
+    """Resolve a dedicated ELMS onboard channel when it is not embedded.
+
+    Newer ELMS race pages can publish onboard replays in a separate channel
+    such as ``elms-silverstone-onboards`` or ``elms-spa-onboards`` without
+    exposing that channel in the series page's VIDEO_CHANNEL feed list.
+    Probe path-based Staylive routes first, then use verified channel IDs as
+    a safe fallback for layouts already confirmed on FIA WEC+.
+    """
+    expected_path = _elms_onboard_channel_path(event_key_value)
+    if not expected_path:
+        return ""
+
+    encoded = urllib.parse.quote(expected_path, safe="")
+    platform = ctx["platform_uid"]
+    candidates = (
+        "https://api.staylive.tv/platforms/{}/channels/path/{}".format(platform, encoded),
+        "https://api.staylive.tv/channels/path/{}".format(encoded),
+        "https://api.staylive.tv/platforms/{}/channels?path={}".format(platform, encoded),
+        "https://api.staylive.tv/channels?path={}".format(encoded),
+    )
+
+    for url in candidates:
+        try:
+            response = ctx["request_json"](url, headers=ctx["api_headers"]())
+            payload = ctx["message"](response)
+            found = _find_channel_record(payload, expected_path)
+            if found:
+                ctx["log"](
+                    "ELMS onboard fallback resolved {} -> channel {}".format(
+                        expected_path, found["channel"]
+                    ),
+                    xbmc.LOGINFO,
+                )
+                return found["channel"]
+        except Exception as exc:
+            ctx["log"](
+                "ELMS onboard channel probe failed for {} via {}: {}".format(
+                    expected_path, url, exc
+                ),
+                xbmc.LOGDEBUG,
+            )
+
+    verified = _ELMS_ONBOARD_VERIFIED_CHANNELS.get(str(event_key_value or "").strip().upper())
+    if verified and verified[0] == expected_path:
+        ctx["log"](
+            "ELMS onboard fallback using verified {} -> channel {}".format(
+                expected_path, verified[1]
+            ),
+            xbmc.LOGINFO,
+        )
+        return verified[1]
+    return ""
+
 def _render_elms(feeds, slug, series_name, ctx):
     L = ctx["L"]
     season = season_from_slug(slug)
@@ -367,6 +490,41 @@ def _render_elms(feeds, slug, series_name, ctx):
         pair = events[key]
         main_feed = pair["main"]
         onboard_feed = pair["onboard"]
+
+        # Some ELMS race weekends expose onboard replays in a dedicated
+        # ``elms-<event>-onboards`` channel without embedding that channel in
+        # the series page. Resolve it generically when the usual onboard feed
+        # is missing. The event date range from the main feed keeps the video
+        # query scoped to this exact race weekend.
+        if main_feed:
+            # For event channels that have been verified directly from the
+            # FIA WEC+ video JSON, prefer the confirmed onboard channel ID.
+            # This avoids relying on the series-page embedding, which is not
+            # consistent for all ELMS rounds (e.g. Spa and Silverstone).
+            verified = _ELMS_ONBOARD_VERIFIED_CHANNELS.get(str(key or "").strip().upper())
+            if verified:
+                onboard_feed = {
+                    "start": main_feed.get("start") or "",
+                    "end": main_feed.get("end") or "",
+                    "channel": verified[1],
+                    "title": "REPLAY ONBOARD - {}".format(key),
+                    "onboard": True,
+                }
+                ctx["log"](
+                    "ELMS onboard using verified {} -> channel {}".format(verified[0], verified[1]),
+                    xbmc.LOGINFO,
+                )
+            elif not onboard_feed:
+                fallback_channel = _resolve_elms_onboard_channel(key, ctx)
+                if fallback_channel:
+                    onboard_feed = {
+                        "start": main_feed.get("start") or "",
+                        "end": main_feed.get("end") or "",
+                        "channel": fallback_channel,
+                        "title": "REPLAY ONBOARD - {}".format(key),
+                        "onboard": True,
+                    }
+
         source = main_feed or onboard_feed
         if not source:
             continue

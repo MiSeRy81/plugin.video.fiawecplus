@@ -590,11 +590,25 @@ def wec_onboard_replays(path, label="Replay - Onboards Hypercar", car_class="hyp
             title = video["_title"]
             thumb = video.get("thumbnail") or _extract_art_url(video)
 
+            # WEC onboard titles usually do not include the class, because the
+            # class is already known from the selected Hypercar/LMGT3 folder.
+            # Build the left info panel from that explicit context instead of
+            # trying to infer it from the Staylive title.
+            first = title.split("|", 1)[0].strip()
+            first = first.replace("N°", "#").replace("Nº", "#").replace("n°", "#").replace("nº", "#")
+            class_label = "LMGT3" if wanted_class == "lmgt3" else "Hypercar"
+            session_label = video.get("_session_label") or session.title()
+            onboard_plot = "\n".join((
+                first,
+                "{} • {}".format(session_label, class_label),
+                "WEC • Onboard",
+            ))
+
             li = xbmcgui.ListItem(label=title)
             li.setProperty("IsPlayable", "true")
             li.setInfo("video", {
                 "title": title,
-                "plot": _clean_text(video.get("description")) or title,
+                "plot": onboard_plot,
                 "duration": _duration_seconds(video.get("duration")),
             })
             if thumb:
@@ -1004,7 +1018,7 @@ def series_next_livestreams(series_key, year="2026"):
             L("Derzeit keine laufenden oder zukünftigen Livestreams angekündigt", "No live or upcoming livestreams announced right now"),
             "noop",
             art=_official_series_art(key),
-            plot=L("Staylive hat derzeit keine laufenden oder zukünftigen Livestreams für {} {} veröffentlicht.", "Staylive hasn't published any live or upcoming livestreams for {} {} right now.").format(series_label, wanted),
+            plot="No upcoming {} livestreams are available right now.".format(series_label),
         )
     else:
         now_utc = datetime.now(timezone.utc)
