@@ -1,5 +1,15 @@
 # Changelog
 
+## FIA WEC+ v1.7.6
+
+### ELMS Onboards
+
+- Fixed newly published ELMS Race onboard replays not appearing in dedicated onboard channels.
+- Dedicated `elms-<event>-onboards` channels are now queried without the main event feed date window.
+- Added complete multi-page loading for ELMS onboard channels containing more than 20 videos.
+- Added video deduplication and duplicate-page loop protection while loading onboard feeds.
+- Silverstone Qualifying and Race onboard replays are now shown together in the same Kodi folder.
+
 ## FIA WEC+ v1.7.5
 
 ### UI / Video information

@@ -437,15 +437,23 @@ def _elms_onboard_sort_key(video):
 def render_feed(start, end, channel_id, page_num, forced_access, suppress_access, ctx):
     try:
         current_page = int(page_num or "1")
-        url = "https://api.staylive.tv/videos/feed?limit=20&page={}&categories=false".format(current_page)
-        if start and end:
-            start_q = urllib.parse.quote(start, safe=":-.")
-            end_q = urllib.parse.quote(end, safe=":-.")
-            url += "&date_range_start={}&date_range_end={}".format(start_q, end_q)
+        page_limit = 20
+
+        def _feed_url(page):
+            feed_url = "https://api.staylive.tv/videos/feed?limit={}&page={}&categories=false".format(
+                page_limit, page
+            )
+            if start and end:
+                start_q = urllib.parse.quote(start, safe=":-.")
+                end_q = urllib.parse.quote(end, safe=":-.")
+                feed_url += "&date_range_start={}&date_range_end={}".format(start_q, end_q)
+            return feed_url
+
+        url = _feed_url(current_page)
         response = ctx["request_json"](url, headers=ctx["feed_headers"](channel_id))
         videos = ctx["message"](response)
         if not isinstance(videos, list):
-            raise RuntimeError("Video-Feed hat ein unexpected format.")
+            raise RuntimeError("Video feed has an unexpected format.")
 
         # ELMS archive onboard feeds use the normal /videos/feed endpoint.
         # Apply compact titles only when the whole returned page is made up
@@ -454,6 +462,66 @@ def render_feed(start, end, channel_id, page_num, forced_access, suppress_access
         elms_onboard_feed = bool(playable_videos) and all(
             _is_elms_onboard_video(v) for v in playable_videos
         )
+
+        # Dedicated ELMS onboard channels can contain more than one API page
+        # once both Qualifying and Race replays have been published. Staylive's
+        # pagination metadata is not consistent across all /videos/feed
+        # responses, so relying only on pageCount can hide the newest replays.
+        # For a positively identified ELMS onboard feed, collect subsequent
+        # pages directly, deduplicate them and stop at the first empty/repeated
+        # page. This keeps all onboard sessions in one Kodi folder.
+        if elms_onboard_feed and current_page == 1:
+            merged = list(videos)
+            seen = set()
+            for video in merged:
+                if not isinstance(video, dict):
+                    continue
+                key = video.get("seo_string") or video.get("id") or video.get("name")
+                if key:
+                    seen.add(str(key))
+
+            for extra_page in range(2, 11):
+                extra_url = _feed_url(extra_page)
+                try:
+                    extra_response = ctx["request_json"](
+                        extra_url, headers=ctx["feed_headers"](channel_id)
+                    )
+                    extra_videos = ctx["message"](extra_response)
+                except Exception as exc:
+                    text = str(exc)
+                    if "404" in text or "No videos found on channels" in text:
+                        break
+                    raise
+
+                if not isinstance(extra_videos, list) or not extra_videos:
+                    break
+
+                added = 0
+                for video in extra_videos:
+                    if not isinstance(video, dict):
+                        continue
+                    key = video.get("seo_string") or video.get("id") or video.get("name")
+                    key = str(key) if key else ""
+                    if key and key in seen:
+                        continue
+                    if key:
+                        seen.add(key)
+                    merged.append(video)
+                    added += 1
+
+                # If the API ignores the page parameter and repeats page 1,
+                # avoid an endless loop. A short final page is also the end.
+                if added == 0 or len(extra_videos) < page_limit:
+                    break
+
+            videos = merged
+            ctx["log"](
+                "ELMS onboard feed channel {}: loaded {} videos across pages".format(
+                    channel_id, len(videos)
+                ),
+                xbmc.LOGINFO,
+            )
+
         if elms_onboard_feed:
             videos = sorted(videos, key=_elms_onboard_sort_key)
 
@@ -494,7 +562,10 @@ def render_feed(start, end, channel_id, page_num, forced_access, suppress_access
                         total_pages = int(pc.get("totalPages") or 1)
                     except (TypeError, ValueError):
                         total_pages = 1
-        if current_page < total_pages:
+
+        # ELMS onboard feeds are intentionally flattened into one Kodi folder
+        # above. Normal video feeds keep the existing manual Next page entry.
+        if not elms_onboard_feed and current_page < total_pages:
             ctx["add_item"](
                 ctx["L"]("Nächste Seite", "Next page"), "feed",
                 art=ctx["folder_art"](), start=start, end=end,

@@ -135,7 +135,11 @@ def render_event_group(event, main_start, main_end, main_channel,
             ).format(event),
         )
 
-    if onboard_start and onboard_end and onboard_channel:
+    # Dedicated ELMS onboard channels are event-specific and may publish
+    # replays after the main event feed's original date_range_end.  A channel
+    # alone is therefore sufficient here; blank start/end intentionally make
+    # render_feed query the complete dedicated onboard channel.
+    if onboard_channel:
         ctx["add_item"](
             ctx["L"]("Onboard-Replays", "Onboard replays"),
             "feed", start=onboard_start, end=onboard_end, channel=onboard_channel, page="1",
@@ -504,8 +508,11 @@ def _render_elms(feeds, slug, series_name, ctx):
             verified = _ELMS_ONBOARD_VERIFIED_CHANNELS.get(str(key or "").strip().upper())
             if verified:
                 onboard_feed = {
-                    "start": main_feed.get("start") or "",
-                    "end": main_feed.get("end") or "",
+                    # Do not reuse the main feed date range here. Staylive can
+                    # publish onboard race replays after that range has ended.
+                    # The dedicated channel itself is already event-specific.
+                    "start": "",
+                    "end": "",
                     "channel": verified[1],
                     "title": "REPLAY ONBOARD - {}".format(key),
                     "onboard": True,
@@ -518,8 +525,11 @@ def _render_elms(feeds, slug, series_name, ctx):
                 fallback_channel = _resolve_elms_onboard_channel(key, ctx)
                 if fallback_channel:
                     onboard_feed = {
-                        "start": main_feed.get("start") or "",
-                        "end": main_feed.get("end") or "",
+                        # A resolved elms-<event>-onboards channel is specific
+                        # to this race weekend, so query it without the main
+                        # feed's date window.
+                        "start": "",
+                        "end": "",
                         "channel": fallback_channel,
                         "title": "REPLAY ONBOARD - {}".format(key),
                         "onboard": True,

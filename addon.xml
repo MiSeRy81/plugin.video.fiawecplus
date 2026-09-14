@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.fiawecplus"
        name="FIA WEC+"
-       version="1.7.5"
+       version="1.7.6"
        provider-name="MiSeRy">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
@@ -18,6 +18,13 @@
         <license>MIT</license>
 	<source>https://github.com/MiSeRy81/plugin.video.fiawecplus</source>
         <news lang="en_GB">
+[1.7.6]
+- Fixed newly published ELMS Race onboard replays not appearing in dedicated onboard channels
+- Dedicated ELMS onboard channels are now queried without the main event feed date window
+- Added complete multi-page loading for ELMS onboard channels with more than 20 videos
+- Added video deduplication and duplicate-page loop protection
+- Silverstone Qualifying and Race onboard replays are now shown together
+
 [1.7.5]
 - Compact three-line information for regular WEC/ELMS/MLMC videos
 - Unified three-line presentation for WEC and ELMS onboard videos
